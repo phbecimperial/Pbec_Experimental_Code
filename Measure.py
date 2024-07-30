@@ -158,9 +158,9 @@ def power_scan(p_list, components, pca=np.nan):
         # Reset
         components['wheel'].reset()
         # Set up measure class
-        Measure(components, pwr, pca)
+        measure = Measure(components, pwr, pca)
         # Take measurement
-        timestamp = Measure.take_measurement()
+        timestamp = measure.take_measurement()
         time_stamps.append(timestamp)
 
     print(time_stamps[0], time_stamps[-1])

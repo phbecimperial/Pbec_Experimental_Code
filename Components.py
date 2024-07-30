@@ -8,6 +8,15 @@ if socket.gethostname() == "ph-photonbec5":
     sys.path.append("D:/Control/PiezoController/")
     sys.path.append("D:/Control/KCubeController/")
     sys.path.append(r"C:\Users\photonbec\AppData\Local\Programs\Python\Python38-32\Lib\site-packages")
+elif socket.gethostname() == "IC-5CD341DLTT":
+    sys.path.append("C:/Control/PythonPackages/")
+    sys.path.append("C:/Control/CameraUSB3/")
+    sys.path.append("C:/Control/SpectrometersV2/")
+    sys.path.append("C:/Control/PiezoController/")
+    sys.path.append("C:/Control/KCubeController/")
+    sys.path.append("C:/Control/CavityLock_minisetup/")
+    sys.path.append(r"C:/Control/PythonPackages/")
+
 
 import pbec_ipc
 from ThorlabsPM100 import ThorlabsPM100
@@ -37,6 +46,7 @@ class PowerMeter():
         self.num_power_readings = num_power_readings
         self.bs_factor = bs_factor
         self.measure = measure
+        self.power_meter.configure.scalar.power()
         print('Found power meter')
         # return self.power_meter
 
@@ -86,6 +96,7 @@ class Spectrometer():
         self.cavity_length = None
         self.measure = measure
         params.update({"spectrometer_nd_filter": float(spec_nd)})  # For backwards compatibility
+        print('Found spectrometer')
 
 
     def get_spectrometer_data(self, int_time, total_time):
@@ -100,6 +111,8 @@ class Spectrometer():
 
         if np.max(self.spectrum) >= self.max_count_rate:
             self.saturated = True
+        else:
+            self.saturated = False
 
         params.update({'spectrometer_integration_time': int(int_time)})
 
@@ -136,6 +149,7 @@ class FilterWheel():
         self.measure = False
         params.update({'nd_filter': 0})
 
+
     def increase_filter(self):
 
         filter_pos = self.filter_wheel.get_position()
@@ -149,18 +163,20 @@ class FilterWheel():
 
     def reset(self):
         self.filter_wheel.set_position(0)
+        self.current_pos_index = 0
 
 
-from CameraUSB3 import CameraUSB3
 
 
 class Camera():
     def __init__(self, camera_id='nathans_dungeon_cavity_NA1', standard_exposure_time=4, measure=True):
+        from CameraUSB3 import CameraUSB3
         self.camera = CameraUSB3(verbose=True, camera_id=camera_id, timeout=1000, acquisition_mode='continuous')
         self.standard_exposure = standard_exposure_time
         self.exposure = standard_exposure_time
         self.im = None
         self.measure = measure
+        print('Found Cameras')
         # return self.camera
 
     def change_exposure(self, exposure_time):
@@ -205,16 +221,46 @@ class Camera():
         self.change_exposure(self.standard_exposure)  # Resets
 
 
-from pylablib.devices import Toptica
-
 
 class Laser():
+    '''Example function for Laser class. Real world classes appear below.'''
+    def __init__(self):
+        self.measure = False
+
+
+    def set_power(self, power):
+        #Insert mechanism
+        1==1
+        self.power = power
+        params.update({'power': self.power * 1000})
+
+class Toptica_Laser():
     def __init__(self, com_port='COM15'):
+        from pylablib.devices import Toptica
         self.laser = Toptica.TopticaIBeam(com_port)
         self.measure = False
+        print('Found laser')
 
     def set_power(self, power):
         self.laser.set_channel_power(1, power)
         self.power = power
+        params.update({'power': self.power * 1000})
+
+
+import pickle
+import thorlabs_apt as apt
+
+class HWP_Laser():
+    def __init__(self, T_cube_no=int(83854619), path = 'pwr_toangle.pkl'):
+        self.motor = apt.Motor(T_cube_no)
+        with open(path, 'rb') as f:
+            self.power_toangle, self.pmin, self.pmax = pickle.load(f)
+        self.measure = False
+        print('Found laser')
+
+    def set_power(self, power):
+        self.power = power
+        self.motor.move_to(self.power_toangle(self.power))
+        time.sleep(1)
         params.update({'power': self.power * 1000})
 
