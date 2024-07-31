@@ -79,7 +79,7 @@ class Spectrometer():
     def __init__(self, spectrometer_server_port=pbec_ipc.PORT_NUMBERS["spectrometer_server V2"],
                  spectrometer_server_host='localhost', max_count_rate=10000, min_int_time=2, spec_nd=1 / 7,
                  total_time=100, initial_time=1000,
-                 measure=True
+                 measure=True, min_lamb=910
 
                  ):
         self.spectrometer_server_port = spectrometer_server_port
@@ -95,6 +95,7 @@ class Spectrometer():
         self.saturated = False
         self.cavity_length = None
         self.measure = measure
+        self.min_lamb = min_lamb
         params.update({"spectrometer_nd_filter": float(spec_nd)})  # For backwards compatibility
         print('Found spectrometer')
 
@@ -120,7 +121,9 @@ class Spectrometer():
 
 
     def get_cavity_length(self):
-        self.cavity_length = self.lamb[np.argmax(self.spectrum)]
+        lamb = self.lamb[self.lamb>self.min_lamb]
+        spec = self.spectrum[self.lamb>self.min_lamb]
+        self.cavity_length = lamb[np.argmax(spec)]
         params.update({'cavity_length': self.cavity_length})
         print(self.cavity_length)
         return self.cavity_length
@@ -200,7 +203,7 @@ class Camera():
                 self.change_exposure(self.exposure*2)
             image = self.camera.get_image()
             time.sleep(self.exposure * 1e-6)
-            print(self.exposure)
+            #print(self.exposure)
 
         n_frames = min(50, round(500000 / self.exposure))
         print('n_frames', n_frames)

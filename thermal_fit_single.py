@@ -328,17 +328,17 @@ outputs = []
 
 # pic = np.array(Image.open(r'D:\Data\2024\202402\Pump_spot_displaced_20240222.bmp'), dtype=float)
 
-aligned_pic = np.array(Image.open(r'C:\Data\2024\PumpSpotLocation\26_07_aligned.bmp'), dtype=float)
+aligned_pic = np.array(Image.open(r'C:\Data\2024\PumpSpotLocation\30_07_aligned.bmp'), dtype=float)
 
-pic = np.array(Image.open(r'C:\Data\2024\PumpSpotLocation\26_07_aligned.bmp'), dtype=float)
+pic = np.array(Image.open(r'C:\Data\2024\PumpSpotLocation\30_07_aligned.bmp'), dtype=float)
 
 plt.imshow(pic)
 plt.title('Data')
 plt.show()
 
 crop_point = np.array(np.unravel_index(aligned_pic.argmax(), aligned_pic.shape))
-crop_point[0] -= 6 #Fix displacement
-crop_point[1] -= 0
+crop_point[0] -= 0 #Fix displacement
+crop_point[1] += 17
 print(crop_point)
 
 result = fit_single(pic, i=0, sf=1, plot=True, crop_point=crop_point, crop_size=200)  # What you change

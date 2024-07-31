@@ -4,18 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f83b769d-dfb0-4914-a75a-804944d3bc6f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/other.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Laser_gui.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Power_calibv2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/PBec Experimental Code.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/PBec Experimental Code.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="f83b769d-dfb0-4914-a75a-804944d3bc6f" name="Changes" comment="Updates - works now">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Components.py" beforeDir="false" afterPath="$PROJECT_DIR$/Components.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Measure.py" beforeDir="false" afterPath="$PROJECT_DIR$/Measure.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/power_lengthV5.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/power_lengthV5.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thermal_fit_single.py" beforeDir="false" afterPath="$PROJECT_DIR$/thermal_fit_single.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/powerV9.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/powerV9.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -73,7 +66,7 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.power_lengthV5.1">
+  <component name="RunManager" selected="Python.thermal_fit_single">
     <configuration name="Laser_gui" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PBec Experimental Code" />
       <option name="ENV_FILES" value="" />
@@ -171,9 +164,6 @@
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -197,10 +187,10 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.thermal_fit_single" />
         <item itemvalue="Python.power_lengthV5.1" />
         <item itemvalue="Python.Laser_gui" />
         <item itemvalue="Python.Power_calibv2" />
-        <item itemvalue="Python.thermal_fit_single" />
       </list>
     </recent_temporary>
   </component>
@@ -230,12 +220,26 @@
       <workItem from="1722000443967" duration="1026000" />
       <workItem from="1722002182566" duration="3773000" />
       <workItem from="1722248160569" duration="8656000" />
-      <workItem from="1722332956168" duration="2206000" />
+      <workItem from="1722332956168" duration="2841000" />
+      <workItem from="1722339705668" duration="13927000" />
     </task>
+    <task id="LOCAL-00001" summary="Updates - works now">
+      <option name="closed" value="true" />
+      <created>1722337871731</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1722337871731</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Updates - works now" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updates - works now" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -255,8 +259,8 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Experimental_Code$Power_calibv2.coverage" NAME="Power_calibv2 Coverage Results" MODIFIED="1722332995228" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Experimental_Code$power_lengthV5_1.coverage" NAME="power_lengthV5.1 Coverage Results" MODIFIED="1722333906492" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Experimental_Code$power_lengthV5_1.coverage" NAME="power_lengthV5.1 Coverage Results" MODIFIED="1722413322202" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Experimental_Code$thermal_fit_single.coverage" NAME="thermal_fit_single Coverage Results" MODIFIED="1722000692403" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Experimental_Code$Laser_gui.coverage" NAME="Laser_gui Coverage Results" MODIFIED="1722333395972" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Experimental_Code$Laser_gui.coverage" NAME="Laser_gui Coverage Results" MODIFIED="1722372481977" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
