@@ -40,13 +40,14 @@ def set_lock(PCA):
 
 class PowerMeter():
     def __init__(self, power_meter_usb_name='USB0::0x1313::0x8078::P0034379::INSTR', num_power_readings=100,
-                 bs_factor=1, measure=True):
+                 bs_factor=1, measure=True, laser=False):
         self.power_meter_usb_name = power_meter_usb_name
         self.power_meter = ThorlabsPM100(visa.ResourceManager().open_resource(power_meter_usb_name, timeout=10))
         self.num_power_readings = num_power_readings
         self.bs_factor = bs_factor
         self.measure = measure
         self.power_meter.configure.scalar.power()
+        self.laser=laser
         print('Found power meter')
         # return self.power_meter
 
@@ -67,7 +68,11 @@ class PowerMeter():
             time.sleep(0.01)
             ps.append(self.power_meter.read)
         reading = np.mean(ps) / self.bs_factor
-        params.update({'meter_reading': np.mean(ps) / self.bs_factor})
+        if self.laser:
+            params.update({'power': reading * 1000})
+            print('power reading', reading*1000)
+        else:
+            params.update({'meter_reading': reading})
         return reading
 
 
@@ -186,7 +191,7 @@ class Camera():
         # Warning: camera will typically round some values - below 20, to the nearest 4!
         self.camera.set_exposure_time(exposure_time)
         self.exposure = self.camera.get_exposure_time()
-        params.update({"camera_integration_time": int(self.exposure)})
+        #params.update({"camera_integration_time": int(self.exposure)})
 
     def take_pic(self):
         # Now take a picture
@@ -214,6 +219,8 @@ class Camera():
         self.im = np.sum(frames, axis=0) / n_frames
 
         self.camera.end_acquisition()
+
+        params.update({"camera_integration_time": int(self.exposure)})
 
         return self.im
 

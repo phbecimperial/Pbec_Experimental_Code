@@ -6,7 +6,8 @@ import winsound
 
 components = dict()
 
-components.update({"powermeter": comp.PowerMeter(num_power_readings=100, bs_factor=1/4)})
+components.update({"lasermeter": comp.PowerMeter(num_power_readings=100, bs_factor=0.3, laser=True)})
+components.update({"powermeter": comp.PowerMeter(power_meter_usb_name='USB0::0x1313::0x8078::P0046773::INSTR', num_power_readings=100, bs_factor=0.25)})
 components.update({"spectrometer": comp.Spectrometer(spec_nd=1 / 40000)})
 components.update({"wheel": comp.FilterWheel(com_port='COM9')})
 components.update({"camera": comp.Camera(measure=True)})
@@ -14,9 +15,9 @@ components.update({"laser": comp.HWP_Laser()})
 
 
 #Define PCA range
-length_list = np.linspace(5, -2, 12)
+length_list = np.linspace(9, -7, 8)
 #Define power range
-power_list = np.linspace(components['laser'].pmin, components['laser'].pmax, 25)
+power_list = np.linspace(components['laser'].pmin, components['laser'].pmax, 15)
 
 
 time_stamps = []

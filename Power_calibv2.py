@@ -49,9 +49,11 @@ for angle in tqdm(angle_list):
     #for n in range(100):
     #    temppowerlist.append(power_meter.read)
     print(power_meter.fetch)
-    power_list.append(power_meter.read)
+    power_list.append(power_meter.read/0.3)
 
 motor.move_to(angle_list[0])
+
+
 
 print(angle_list)
 print(power_list)

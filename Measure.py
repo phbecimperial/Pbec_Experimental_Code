@@ -26,6 +26,10 @@ class Measure():
     def powermeter(self):
         self.comps['powermeter'].take_power_reading()
 
+    def lasermeter(self):
+        self.comps['lasermeter'].take_power_reading()
+        #print('lasermeter complete')
+
     def spectrometer(self):
         spec = self.comps['spectrometer']
         integration_time = spec.initial_time
