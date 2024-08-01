@@ -17,7 +17,6 @@ elif socket.gethostname() == "IC-5CD341DLTT":
     sys.path.append("C:/Control/CavityLock_minisetup/")
     sys.path.append(r"C:/Control/PythonPackages/")
 
-
 import pbec_ipc
 from ThorlabsPM100 import ThorlabsPM100
 import pyvisa as visa
@@ -47,7 +46,7 @@ class PowerMeter():
         self.bs_factor = bs_factor
         self.measure = measure
         self.power_meter.configure.scalar.power()
-        self.laser=laser
+        self.laser = laser
         print('Found power meter')
         # return self.power_meter
 
@@ -70,7 +69,7 @@ class PowerMeter():
         reading = np.mean(ps) / self.bs_factor
         if self.laser:
             params.update({'power': reading * 1000})
-            print('power reading', reading*1000)
+            print('power reading', reading * 1000)
         else:
             params.update({'meter_reading': reading})
         return reading
@@ -104,7 +103,6 @@ class Spectrometer():
         params.update({"spectrometer_nd_filter": float(spec_nd)})  # For backwards compatibility
         print('Found spectrometer')
 
-
     def get_spectrometer_data(self, int_time, total_time):
         _, _, lamb, spectrum = get_spectrum_measure(int_time=int_time, n_averages=max(1, round(total_time / int_time)),
                                                     n_measures=2,
@@ -124,15 +122,13 @@ class Spectrometer():
 
         return self.lamb, self.spectrum
 
-
     def get_cavity_length(self):
-        lamb = self.lamb[self.lamb>self.min_lamb]
-        spec = self.spectrum[self.lamb>self.min_lamb]
+        lamb = self.lamb[self.lamb > self.min_lamb]
+        spec = self.spectrum[self.lamb > self.min_lamb]
         self.cavity_length = lamb[np.argmax(spec)]
         params.update({'cavity_length': self.cavity_length})
         print(self.cavity_length)
         return self.cavity_length
-
 
     def save_reset(self, dataset, timestamp):
         self.saturated = False  # Reset whether saturated or not
@@ -157,7 +153,6 @@ class FilterWheel():
         self.measure = False
         params.update({'nd_filter': 0})
 
-
     def increase_filter(self):
 
         filter_pos = self.filter_wheel.get_position()
@@ -174,9 +169,7 @@ class FilterWheel():
         self.current_pos_index = 0
 
 
-
-
-class Camera():
+class FLIR_Camera():
     def __init__(self, camera_id='nathans_dungeon_cavity_NA1', standard_exposure_time=4, measure=True):
         from CameraUSB3 import CameraUSB3
         self.camera = CameraUSB3(verbose=True, camera_id=camera_id, timeout=1000, acquisition_mode='continuous')
@@ -191,10 +184,11 @@ class Camera():
         # Warning: camera will typically round some values - below 20, to the nearest 4!
         self.camera.set_exposure_time(exposure_time)
         self.exposure = self.camera.get_exposure_time()
-        #params.update({"camera_integration_time": int(self.exposure)})
+        # params.update({"camera_integration_time": int(self.exposure)})
 
     def take_pic(self):
         # Now take a picture
+        # algorithm, rising
 
         self.change_exposure(self.standard_exposure)
         # standard_exposure_time = 500000
@@ -205,10 +199,10 @@ class Camera():
             if self.exposure < 20:  # dumb camera things
                 self.change_exposure(max(5, self.exposure * 1.8))
             else:
-                self.change_exposure(self.exposure*2)
+                self.change_exposure(self.exposure * 2)
             image = self.camera.get_image()
             time.sleep(self.exposure * 1e-6)
-            #print(self.exposure)
+            # print(self.exposure)
 
         n_frames = min(50, round(500000 / self.exposure))
         print('n_frames', n_frames)
@@ -231,18 +225,51 @@ class Camera():
         self.change_exposure(self.standard_exposure)  # Resets
 
 
+class Thor_Camera():
+
+    def __init__(self,
+                 serial="28897",
+                 dll_path=r'C:\Program Files\Thorlabs\Scientific Imaging\Scientific Camera Support\Scientific Camera Interfaces\SDK\Native Toolkit\dlls\Native_32_lib'):
+        import pylablib as pll
+        from pylablib.devices import Thorlabs
+        # Note the DLL path will depend on whether you're using 32 or 64 bit python. You are probably using 64 bit.
+        # 28897
+        pll.par[
+            'devices/dlls/thorlabs_tlcam'] = dll_path
+        self.camera = Thorlabs.ThorlabsTLCamera(serial=serial)
+
+    from pylablib.devices import Thorlabs
+    z = Thorlabs.list_cameras_tlcam()
+
 
 class Laser():
     '''Example function for Laser class. Real world classes appear below.'''
+
     def __init__(self):
         self.measure = False
 
-
     def set_power(self, power):
-        #Insert mechanism
-        1==1
+        # Insert mechanism
+        1 == 1
         self.power = power
         params.update({'power': self.power * 1000})
+
+
+class Translation_Stage():
+    from pylablib.devices import Thorlabs
+    def __init__(self, device_id=73852194, scale=20000):
+        self.stage = Thorlabs.KinesisMotor(str(device_id), is_rack_system=True, scale=scale)
+        print('Stage Found, postion:', self.stage.get_position())
+        self.stage.home()
+        self.stage.wait_for_home()
+        print("Stage is homed and operational")
+        self.measure = False
+
+    def set_position(self, position, timeout=1):
+        self.stage.move_to(position)
+        self.stage.wait_move()
+        time.sleep(timeout)
+
 
 class Toptica_Laser():
     def __init__(self, com_port='COM15'):
@@ -260,8 +287,9 @@ class Toptica_Laser():
 import pickle
 import thorlabs_apt as apt
 
+
 class HWP_Laser():
-    def __init__(self, T_cube_no=int(83854619), path = 'pwr_toangle.pkl'):
+    def __init__(self, T_cube_no=int(83854619), path='pwr_toangle.pkl'):
         self.motor = apt.Motor(T_cube_no)
         with open(path, 'rb') as f:
             self.power_toangle, self.pmin, self.pmax = pickle.load(f)
@@ -273,4 +301,3 @@ class HWP_Laser():
         self.motor.move_to(self.power_toangle(self.power))
         time.sleep(1)
         params.update({'power': self.power * 1000})
-
