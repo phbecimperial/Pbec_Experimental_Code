@@ -69,7 +69,7 @@ class Measure():
 
     def take_measurement(self):
         self.laser.set_power(self.power)
-        time.sleep(0.5)
+        time.sleep(2)
 
         for key, value in self.comps.items(): #Get names and component objects from dictionary
             if value.measure == True:
@@ -160,6 +160,7 @@ def power_scan(p_list, components, pca=np.nan):
     time_stamps = []
     for pwr in tqdm(p_list, leave=True):
         # Reset
+        print('PCA:', pca)
         components['wheel'].reset()
         # Set up measure class
         measure = Measure(components, pwr, pca)
@@ -168,3 +169,5 @@ def power_scan(p_list, components, pca=np.nan):
         time_stamps.append(timestamp)
 
     print(time_stamps[0], time_stamps[-1])
+    return time_stamps
+

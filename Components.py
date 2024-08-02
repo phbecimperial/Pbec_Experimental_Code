@@ -1,4 +1,5 @@
 import socket
+import winsound
 import sys
 
 if socket.gethostname() == "ph-photonbec5":
@@ -18,7 +19,6 @@ elif socket.gethostname() == "IC-5CD341DLTT":
     sys.path.append(r"C:/Control/PythonPackages/")
 
 import pbec_ipc
-from ThorlabsPM100 import ThorlabsPM100
 import pyvisa as visa
 import numpy as np
 import time
@@ -36,23 +36,30 @@ def set_lock(PCA):
     print(pbec_ipc.PORT_NUMBERS["cavity_lock"])
     pbec_ipc.ipc_exec("setSetPoint(" + str(float(PCA)) + ")", port=pbec_ipc.PORT_NUMBERS["cavity_lock"])
 
-
 class PowerMeter():
-    def __init__(self, power_meter_usb_name='USB0::0x1313::0x8078::P0034379::INSTR', num_power_readings=100,
-                 bs_factor=1, measure=True, laser=False):
-        self.power_meter_usb_name = power_meter_usb_name
-        self.power_meter = ThorlabsPM100(visa.ResourceManager().open_resource(power_meter_usb_name, timeout=10))
+    def __init__(self, num_power_readings=100, bs_factor=1, wavelength=950, measure=True, laser=False):
         self.num_power_readings = num_power_readings
         self.bs_factor = bs_factor
         self.measure = measure
-        self.power_meter.configure.scalar.power()
         self.laser = laser
-        print('Found power meter')
-        # return self.power_meter
+        self.wavelength = wavelength
 
-    def update_measurement_params(self, num_power_readings, bs_factor):
-        self.num_power_readings = num_power_readings
-        self.bs_factor = bs_factor
+    def take_power_reading(self):
+        raise Exception('Not implemented')
+
+
+
+class Thor_PowerMeter(PowerMeter):
+
+
+    def __init__(self, power_meter_usb_name='USB0::0x1313::0x8078::P0034379::INSTR', num_power_readings=100,
+                 bs_factor=1, wavelength=950, measure=True, laser=False):
+        from pylablib.devices.Thorlabs.misc import GenericPM
+        super().__init__(num_power_readings, bs_factor, wavelength, measure, laser)
+        self.power_meter = GenericPM(power_meter_usb_name)
+        self.power_meter.set_sensor_mode('power')
+        self.power_meter.set_wavelength(wavelength)
+        print('Found power meter')
 
     def take_power_reading(self):
         '''
@@ -65,7 +72,7 @@ class PowerMeter():
         ps = []
         for i in range(self.num_power_readings):
             time.sleep(0.01)
-            ps.append(self.power_meter.read)
+            ps.append(self.power_meter.get_power())
         reading = np.mean(ps) / self.bs_factor
         if self.laser:
             params.update({'power': reading * 1000})
@@ -102,6 +109,7 @@ class Spectrometer():
         self.min_lamb = min_lamb
         params.update({"spectrometer_nd_filter": float(spec_nd)})  # For backwards compatibility
         print('Found spectrometer')
+
 
     def get_spectrometer_data(self, int_time, total_time):
         _, _, lamb, spectrum = get_spectrum_measure(int_time=int_time, n_averages=max(1, round(total_time / int_time)),
@@ -158,6 +166,7 @@ class FilterWheel():
         filter_pos = self.filter_wheel.get_position()
         if filter_pos == max(self.allowed_filter_positions):
             raise Exception('Max ND filter reached')
+            winsound.Beep(1000, 1000)
         else:
             self.filter_wheel.set_position(self.allowed_filter_positions[self.current_pos_index + 1])
             self.current_pos_index = self.current_pos_index + 1
@@ -168,8 +177,65 @@ class FilterWheel():
         self.filter_wheel.set_position(0)
         self.current_pos_index = 0
 
+# class Camera():
+#     def __init__(self, camera_id, measure=True):
+#         self.camera_id = camera_id
+#         self.measure = measure
+#         self.im = None
+#         self.camera = None
+#         self.min_exposure=4
+#         self.max_exposure=500000 #Set depending on the camera itself!
+#         self.exposure=None
+#
+#     def change_exposure(self, exposure):
+#         #Insert your change exposure method. See FLIR camera for example, may depend on camera.
+#         raise Exception('Not implemented')
+#
+#     def get_image(self):
+#         raise Exception('Not implemented')
+#
+#     def get_multiple_images(self, num=10):
+#         #Return as a list
+#         raise Exception('Not implemented')
+#     def take_pic(self, algorithm='rising'):
+#         #Only works if camera goes between 0 and 255
+#
+#         if algorithm == 'rising':
+#             self.change_exposure(self.min_exposure)
+#             self.exposure = self.min_exposure
+#             # standard_exposure_time = 500000
+#             self.camera.begin_acquisition()
+#             image = self.camera.get_image()
+#             while np.amax(image) < 50 and np.amax(image) != 0 and self.exposure < self.max_exposure:
+#                 self.change_exposure(self.exposure * 2)
+#                 image = self.get_image()
+#                 time.sleep(self.exposure * 1e-6)
+#
+#         elif algorithm == 'falling':
+#             raise Exception('Not implemented')
+#
+#         elif algorithm == 'middle':
+#             raise Exception('Not implemented')
+#
+#         n_frames = min(50, round(self.max_exposure / self.exposure))
+#         print('n_frames', n_frames)
+#
+#         ims = self.get_multiple_images(n_frames)
+#         self.im = np.sum(ims, axis=0) / n_frames
+#
+#         params.update({"camera_integration_time": int(self.exposure)})
+#
+#         return self.im
+#
+#     def save_pic(self, dataset, fname):
+#         camera_data = CameraData(fname, extension='_.png')
+#         camera_data.data = self.im
+#         dataset.dataset["CavityCamera"] = camera_data
+#
+#
+#
 
-class FLIR_Camera():
+class Camera():
     def __init__(self, camera_id='nathans_dungeon_cavity_NA1', standard_exposure_time=4, measure=True):
         from CameraUSB3 import CameraUSB3
         self.camera = CameraUSB3(verbose=True, camera_id=camera_id, timeout=1000, acquisition_mode='continuous')
@@ -238,8 +304,7 @@ class Thor_Camera():
             'devices/dlls/thorlabs_tlcam'] = dll_path
         self.camera = Thorlabs.ThorlabsTLCamera(serial=serial)
 
-    from pylablib.devices import Thorlabs
-    z = Thorlabs.list_cameras_tlcam()
+
 
 
 class Laser():
@@ -256,8 +321,8 @@ class Laser():
 
 
 class Translation_Stage():
-    from pylablib.devices import Thorlabs
     def __init__(self, device_id=73852194, scale=20000):
+        from pylablib.devices import Thorlabs
         self.stage = Thorlabs.KinesisMotor(str(device_id), is_rack_system=True, scale=scale)
         print('Stage Found, postion:', self.stage.get_position())
         self.stage.home()

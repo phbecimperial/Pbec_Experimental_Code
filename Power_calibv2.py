@@ -27,9 +27,17 @@ import pickle
 
 power_meter_usb_name = 'USB0::0x1313::0x8078::P0034379::INSTR'
 
-power_meter = ThorlabsPM100(visa.ResourceManager().open_resource(power_meter_usb_name, timeout=10))
-power_meter.sense.power.dc.range.auto = "OFF"
-power_meter.configure.scalar.power()
+# power_meter = ThorlabsPM100(visa.ResourceManager().open_resource(power_meter_usb_name, timeout=10))
+# power_meter.sense.power.dc.range.auto = "OFF"
+# power_meter.configure.scalar.power()
+# power_meter.sense.correction.wavelength()
+
+from pylablib.devices.Thorlabs.misc import GenericPM
+
+power_meter = GenericPM(power_meter_usb_name)
+power_meter.set_sensor_mode('power')
+power_meter.set_wavelength(784)
+
 motor = apt.Motor(83854619)
 
 angle_start = 40
@@ -48,8 +56,8 @@ for angle in tqdm(angle_list):
     #temppowerlist = list()
     #for n in range(100):
     #    temppowerlist.append(power_meter.read)
-    print(power_meter.fetch)
-    power_list.append(power_meter.read/0.3)
+    print(power_meter.get_power())
+    power_list.append(power_meter.get_power()*(7/3))
 
 motor.move_to(angle_list[0])
 
