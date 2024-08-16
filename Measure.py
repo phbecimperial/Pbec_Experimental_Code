@@ -14,10 +14,11 @@ from pbec_analysis import make_timestamp, ExperimentalDataSet
 
 
 class Measure():
-    def __init__(self, comps, power, PCA=np.nan): #comps is a dictionary
+    def __init__(self, comps, power = None, PCA=np.nan, position = None): #comps is a dictionary
         self.comps = comps
-        self.power = power
-        self.laser = comps['laser']
+        self.power =  power
+        self.position = position
+        #self.laser = comps['laser']
         self.timestamp = make_timestamp(precision=0)
         self.dataset = ExperimentalDataSet(self.timestamp)
         self.PCA=PCA #Optional
@@ -58,8 +59,10 @@ class Measure():
     def camera(self):
         cam = self.comps['camera']
         cam.take_pic()
+        while cam.cam_saturated and round(cam.exposure, 2) <= 2 * round(cam.min_exposure, 2):
+            self.comps['wheel'].increase_filter()
+            cam.take_pic()
 
-        self.comps['spectrometer'].get_cavity_length()
 
         image_name = str(self.timestamp) + '_' + str(cam.exposure) + '_' + str(self.power) + '_' + str(
             self.comps['spectrometer'].cavity_length) + '_' + str(self.PCA)
@@ -68,7 +71,6 @@ class Measure():
 
 
     def take_measurement(self):
-        self.laser.set_power(self.power)
         time.sleep(2)
 
         for key, value in self.comps.items(): #Get names and component objects from dictionary
@@ -160,6 +162,7 @@ def power_scan(p_list, components, pca=np.nan):
     time_stamps = []
     for pwr in tqdm(p_list, leave=True):
         # Reset
+        components['laser'].set(pwr)
         print('PCA:', pca)
         components['wheel'].reset()
         # Set up measure class
@@ -171,3 +174,19 @@ def power_scan(p_list, components, pca=np.nan):
     print(time_stamps[0], time_stamps[-1])
     return time_stamps
 
+def coherence_scan(position_list, components,pca=np.nan):
+    time_stamps = []
+    for position in position_list:
+        # Reset
+        tstage = components['stage']
+        tstage.set(position)
+        print('Position:',tstage.get_position())
+        components['wheel'].reset()
+        # Set up measure class
+        measure = Measure(components, position = position,PCA=pca)
+        # Take measurement
+        timestamp = measure.take_measurement()
+        time_stamps.append(timestamp)
+
+    print(time_stamps[0], time_stamps[-1])
+    return time_stamps
