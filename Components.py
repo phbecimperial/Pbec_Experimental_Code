@@ -32,7 +32,6 @@ def update_dataset(dataset):
 
 
 def set_lock(PCA):
-
     print(PCA)
     print(pbec_ipc.PORT_NUMBERS["cavity_lock"])
     pbec_ipc.ipc_exec("setSetPoint(" + str(float(PCA)) + ")", port=pbec_ipc.PORT_NUMBERS["cavity_lock"])
@@ -48,41 +47,6 @@ class PowerMeter():
     def take_power_reading(self):
         raise Exception('Not implemented')
 
-
-class Grandaddy_PowerMeter(PowerMeter):
-    def __init__(self, num_power_readings=100, bs_factor=1, wavelength=950, measure=True, laser=False):
-        super().__init__(num_power_readings, bs_factor, wavelength, measure, laser)
-
-        rm = visa.ResourceManager()
-        res_list = rm.list_resources()#
-        port = ''
-        for i in res_list:
-            try:
-                iden = rm.open_resource(i).query('*IDN?')
-            except:
-                print(f'No instrument at {i}')
-            else:
-                if 'NewportCorp' in iden:
-                    port = i
-            
-        if port == '':
-            raise Exception('No Newport 1835-c Power meters Found')
-            
-        self.power_meter = rm.open_resource(i)
-        self.power_meter.write(f'STSIZE {num_power_readings};MODE DCCONT;UNITS W;LAMBDA {wavelength}; SPREC 4096;SFREQ 500;BARGRAPH 1; AUTO 1')
-
-    def take_power_reading(self):
-        reading = float(self.power_meter.query('STMEAN?'))/self.bs_factor
-        return reading
-    
-    def set_wavelength(self, wavelength: float):
-        self.power_meter.write(f'LAMBDA {wavelength}')
-    
-    def set_buffersize(self, size: int):
-        size = min([size, 100])
-        self.power_meter.write(f'STSIZE {size}')
-
-    
 
 
 class Thor_PowerMeter(PowerMeter):
@@ -122,14 +86,13 @@ from single_spec_IPC_module import get_spectrum_measure
 
 
 class Spectrometer():
-    from single_spec_IPC_module import get_spectrum_measure
+
     def __init__(self, spectrometer_server_port=pbec_ipc.PORT_NUMBERS["spectrometer_server V2"],
                  spectrometer_server_host='localhost', max_count_rate=10000, min_int_time=2, spec_nd=1 / 7,
                  total_time=100, initial_time=1000,
                  measure=True, min_lamb=910
 
                  ):
-        
         self.spectrometer_server_port = spectrometer_server_port
         self.spectrometer_server_host = spectrometer_server_host
         self.max_count_rate = max_count_rate
@@ -176,7 +139,6 @@ class Spectrometer():
         return self.cavity_length
 
     def save_reset(self, dataset, timestamp):
-        from pbec_analysis import SpectrometerData
         self.saturated = False  # Reset whether saturated or not
         spectrometer_data = SpectrometerData(timestamp)
         spectrometer_data.lamb = self.lamb
@@ -189,7 +151,6 @@ from microscope.filterwheels.thorlabs import ThorlabsFilterWheel
 
 class FilterWheel():
     def __init__(self, allowed_filter_positions=[0, 5], com_port='COM5'):
-        from microscope.filterwheels.thorlabs import ThorlabsFilterWheel
         self.allowed_filter_positions = allowed_filter_positions
         self.com_port = com_port
         self.filter_wheel = ThorlabsFilterWheel(com=self.com_port)
@@ -324,7 +285,6 @@ class Camera():
         return self.im
 
     def save_pic(self, dataset, fname):
-        from pbec_analysis import CameraData
         camera_data = CameraData(fname, extension='_.png')
         camera_data.data = self.im
         dataset.dataset["CavityCamera"] = camera_data
