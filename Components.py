@@ -2,6 +2,8 @@ import socket
 import winsound
 import sys
 
+from thorlabs_tsi_sdk.tl_camera import TLCameraSDK
+
 if socket.gethostname() == "ph-photonbec5":
     sys.path.append("D:/Control/PythonPackages/")
     sys.path.append("D:/Control/CameraUSB3/")
@@ -150,7 +152,7 @@ from microscope.filterwheels.thorlabs import ThorlabsFilterWheel
 
 
 class FilterWheel():
-    def __init__(self, allowed_filter_positions=[0, 5], com_port='COM5'):
+    def __init__(self, allowed_filter_positions=[0, 5], com_port='COM6'):
         self.allowed_filter_positions = allowed_filter_positions
         self.com_port = com_port
         self.filter_wheel = ThorlabsFilterWheel(com=self.com_port)
@@ -177,108 +179,78 @@ class FilterWheel():
         self.filter_wheel.set_position(0)
         self.current_pos_index = 0
 
-# class Camera():
-#     def __init__(self, camera_id, measure=True):
-#         self.camera_id = camera_id
-#         self.measure = measure
-#         self.im = None
-#         self.camera = None
-#         self.min_exposure=4
-#         self.max_exposure=500000 #Set depending on the camera itself!
-#         self.exposure=None
-#
-#     def change_exposure(self, exposure):
-#         #Insert your change exposure method. See FLIR camera for example, may depend on camera.
-#         raise Exception('Not implemented')
-#
-#     def get_image(self):
-#         raise Exception('Not implemented')
-#
-#     def get_multiple_images(self, num=10):
-#         #Return as a list
-#         raise Exception('Not implemented')
-#     def take_pic(self, algorithm='rising'):
-#         #Only works if camera goes between 0 and 255
-#
-#         if algorithm == 'rising':
-#             self.change_exposure(self.min_exposure)
-#             self.exposure = self.min_exposure
-#             # standard_exposure_time = 500000
-#             self.camera.begin_acquisition()
-#             image = self.camera.get_image()
-#             while np.amax(image) < 50 and np.amax(image) != 0 and self.exposure < self.max_exposure:
-#                 self.change_exposure(self.exposure * 2)
-#                 image = self.get_image()
-#                 time.sleep(self.exposure * 1e-6)
-#
-#         elif algorithm == 'falling':
-#             raise Exception('Not implemented')
-#
-#         elif algorithm == 'middle':
-#             raise Exception('Not implemented')
-#
-#         n_frames = min(50, round(self.max_exposure / self.exposure))
-#         print('n_frames', n_frames)
-#
-#         ims = self.get_multiple_images(n_frames)
-#         self.im = np.sum(ims, axis=0) / n_frames
-#
-#         params.update({"camera_integration_time": int(self.exposure)})
-#
-#         return self.im
-#
-#     def save_pic(self, dataset, fname):
-#         camera_data = CameraData(fname, extension='_.png')
-#         camera_data.data = self.im
-#         dataset.dataset["CavityCamera"] = camera_data
-#
-#
-#
-
 class Camera():
-    def __init__(self, camera_id='nathans_dungeon_cavity_NA1', standard_exposure_time=4, measure=True):
-        from CameraUSB3 import CameraUSB3
-        self.camera = CameraUSB3(verbose=True, camera_id=camera_id, timeout=1000, acquisition_mode='continuous')
-        self.standard_exposure = standard_exposure_time
-        self.exposure = standard_exposure_time
-        self.im = None
+    def __init__(self,min_exposure, max_exposure, measure=True, max_frames=50, algorithm = 'rising', camera_id = None):
+        self.camera_id = camera_id
         self.measure = measure
-        print('Found Cameras')
-        # return self.camera
+        self.im = None
+        self.camera = None
+        self.min_exposure=min_exposure
+        self.max_exposure=max_exposure #Set depending on the camera itself!
+        self.exposure=None
+        self.max_frames = max_frames
+        self.cam_saturated = False
+        self.algorithm = algorithm
 
-    def change_exposure(self, exposure_time):
-        # Warning: camera will typically round some values - below 20, to the nearest 4!
-        self.camera.set_exposure_time(exposure_time)
-        self.exposure = self.camera.get_exposure_time()
-        # params.update({"camera_integration_time": int(self.exposure)})
 
-    def take_pic(self):
-        # Now take a picture
-        # algorithm, rising
+    def change_exposure(self, exposure):
+        raise Exception('Not implemented')
 
-        self.change_exposure(self.standard_exposure)
-        # standard_exposure_time = 500000
-        self.camera.begin_acquisition()
-        image = self.camera.get_image()
-        while np.amax(image) < 50 and np.amax(image) != 0 and self.exposure < 500000:
-            counts = np.unique(image, return_counts=True)[1]
-            if self.exposure < 20:  # dumb camera things
-                self.change_exposure(max(5, self.exposure * 1.8))
-            else:
+    def get_image(self):
+        raise Exception('Not implemented')
+
+    def get_multiple_images(self, num=10):
+        #Return as a list
+        raise Exception('Not implemented')
+    def take_pic(self, algorithm='rising'):
+        #Only works if camera goes between 0 and 255
+
+        if self.algorithm == 'rising':
+            self.change_exposure(self.min_exposure)
+            self.exposure = self.min_exposure
+            # standard_exposure_time = 500000
+            # self.camera.begin_acquisition()
+            image = self.get_image()
+            while np.amax(image) < 50 and np.amax(image) != 0 and self.exposure < self.max_exposure:
                 self.change_exposure(self.exposure * 2)
-            image = self.camera.get_image()
-            time.sleep(self.exposure * 1e-6)
-            # print(self.exposure)
+                image = self.get_image()
+                time.sleep(self.exposure * 1e-6)
 
-        n_frames = min(50, round(500000 / self.exposure))
+        elif self.algorithm == 'falling':
+            # Now take a picture
+            standard_exposure_time = 500000
+            self.set_exposure_time(standard_exposure_time)
+            time.sleep(0.5)
+            exposure_time = self.get_exposure_time()
+
+            image = self.get_image()
+            while np.amax(image) > 240 and np.amax(image) != 0 and int(exposure_time) > 5:
+                if exposure_time > 20:  # dumb camera things
+                    self.set_exposure_time(max(5, exposure_time * 0.8))
+                else:
+                    self.set_exposure_time(exposure_time / 2)
+                exposure_time = self.get_exposure_time()
+                image = self.get_image()
+                time.sleep(exposure_time * 1e-6)
+                print(exposure_time)
+
+            raise Exception('Not implemented')
+
+        elif self.algorithm == 'middle':
+            raise Exception('Not implemented')
+
+        n_frames = min(self.max_frames, round(self.max_exposure / self.exposure))
         print('n_frames', n_frames)
-        frames = list()
-        for i in range(0, n_frames):
-            frames.append(self.camera.get_image())
-            time.sleep(self.exposure * 1e-6)
-        self.im = np.sum(frames, axis=0) / n_frames
 
-        self.camera.end_acquisition()
+
+
+        ims = self.get_multiple_images(n_frames)
+        self.im = np.sum(ims, axis=0) / n_frames
+
+        if np.amax(image) == 255:
+            self.cam_saturated = True
+        else:
+            self.cam_saturated = False
 
         params.update({"camera_integration_time": int(self.exposure)})
 
@@ -288,21 +260,145 @@ class Camera():
         camera_data = CameraData(fname, extension='_.png')
         camera_data.data = self.im
         dataset.dataset["CavityCamera"] = camera_data
-        self.change_exposure(self.standard_exposure)  # Resets
 
 
-class Thor_Camera():
+
+
+class FLIR_Camera(Camera):
+    def __init__(self, camera_id='nathans_dungeon_cavity_NA1', min_exposure=4, max_exposure=500000, measure=True, max_frames=50, algorithm='rising'):
+        #Define init to turn on camera.
+        from CameraUSB3 import CameraUSB3
+        super().__init__(camera_id, min_exposure, max_exposure, measure, max_frames, algorithm)
+        self.camera = CameraUSB3(verbose=True, camera_id=self.camera_id, timeout=1000, acquisition_mode='continuous')
+        #Running in continuous mode - faster!
+        self.camera.begin_acquisition()
+        print('Found Cameras')
+
+    def change_exposure(self, exposure_time):
+        # Warning: camera will typically round some values - below 20, to the nearest 4!
+        self.camera.set_exposure_time(exposure_time)
+        self.exposure = self.camera.get_exposure_time()
+
+    def get_exposure(self):
+        return self.camera.get_exposure_time()
+
+    def get_image(self):
+        image = self.camera.get_image()
+        return image
+        # raise Exception('Not implemented')
+
+    def get_multiple_images(self, num=10):
+        # Return as a list
+        images = []
+        for k in range(num):
+            images.append(self.get_image())
+        return images
+        # raise Exception('Not implemented')
+
+    # def take_pic(self):
+    #     # Now take a picture
+    #     # algorithm, rising
+    #
+    #     self.change_exposure(self.standard_exposure)
+    #     # standard_exposure_time = 500000
+    #     self.camera.begin_acquisition()
+    #     image = self.camera.get_image()
+    #     while np.amax(image) < 50 and np.amax(image) != 0 and self.exposure < 500000:
+    #         counts = np.unique(image, return_counts=True)[1]
+    #         if self.exposure < 20:  # dumb camera things
+    #             self.change_exposure(max(5, self.exposure * 1.8))
+    #         else:
+    #             self.change_exposure(self.exposure * 2)
+    #         image = self.camera.get_image()
+    #         time.sleep(self.exposure * 1e-6)
+    #         # print(self.exposure)
+    #
+    #     n_frames = min(50, round(500000 / self.exposure))
+    #     print('n_frames', n_frames)
+    #     frames = list()
+    #     for i in range(0, n_frames):
+    #         frames.append(self.camera.get_image())
+    #         time.sleep(self.exposure * 1e-6)
+    #     self.im = np.sum(frames, axis=0) / n_frames
+    #
+    #     self.camera.end_acquisition()
+    #
+    #     params.update({"camera_integration_time": int(self.exposure)})
+    #
+    #     return self.im
+
+    # def save_pic(self, dataset, fname):
+    #     camera_data = CameraData(fname, extension='_.png')
+    #     camera_data.data = self.im
+    #     dataset.dataset["CavityCamera"] = camera_data
+    #     self.change_exposure(self.standard_exposure)  # Resets
+
+from PIL import Image
+class Thor_Camera(Camera):
 
     def __init__(self,
-                 serial="28897",
-                 dll_path=r'C:\Program Files\Thorlabs\Scientific Imaging\Scientific Camera Support\Scientific Camera Interfaces\SDK\Native Toolkit\dlls\Native_32_lib'):
-        import pylablib as pll
-        from pylablib.devices import Thorlabs
-        # Note the DLL path will depend on whether you're using 32 or 64 bit python. You are probably using 64 bit.
-        # 28897
-        pll.par[
-            'devices/dlls/thorlabs_tlcam'] = dll_path
-        self.camera = Thorlabs.ThorlabsTLCamera(serial=serial)
+                min_exposure = 100, max_exposure = 1999994,measure=True, max_frames=50, algorithm='rising'):
+        from thorlabs_tsi_sdk.tl_camera import TLCameraSDK, TLCamera
+        import os
+        try:
+            # if on Windows, use the provided setup script to add the DLLs folder to the PATH
+            from windows_setup import configure_path
+            configure_path()
+        except ImportError:
+            configure_path = None
+        os.add_dll_directory(
+            r'C:\Program Files\Thorlabs\Scientific Imaging\Scientific Camera Support\Scientific Camera Interfaces\SDK\Native Toolkit\dlls\Native_32_lib')
+        super().__init__(min_exposure, max_exposure, measure, max_frames, algorithm)
+
+        self.sdk = TLCameraSDK()
+        self.tlc = TLCamera
+        available_cameras = self.sdk.discover_available_cameras()
+        if len(available_cameras) < 1:
+            print("no cameras detected")
+        self.camera = self.sdk.open_camera(available_cameras[0])
+        self.tlc.arm(self.camera,50)
+
+    def change_exposure(self, exposure_time):
+        self.camera.exposure_time_us = int(exposure_time)
+        self.exposure = self.camera.exposure_time_us
+        # raise Exception('Not implemented')
+
+    def get_exposure(self):
+        return self.camera.exposure_time_us
+    def get_image(self):
+        self.camera.issue_software_trigger()
+        frame = self.tlc.get_pending_frame_or_null(self.camera)
+        image_data = frame.image_buffer
+        image = Image.fromarray(image_data)
+        image = np.array(image)
+        return image
+        # raise Exception('Not implemented')
+
+    def get_multiple_images(self, num=10):
+        # Return as a list
+        images = []
+        for k in range(num):
+            images.append(self.get_image())
+        return images
+        # raise Exception('Not implemented')
+
+    def begin_acquisition(self):
+        self.tlc.arm(self.camera,50)
+
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.tlc.disarm(self.camera)
+        self.tlc.dispose(self.camera)
+        self.sdk.dispose()
+
+    # def __del__(self, exc_type, exc_val, exc_tb):
+    #     self.tlc.disarm(self.camera)
+    #     self.tlc.dispose(self.camera)
+    #     self.sdk.dispose()
+
 
 
 
@@ -330,11 +426,19 @@ class Translation_Stage():
         print("Stage is homed and operational")
         self.measure = False
 
-    def set_position(self, position, timeout=1):
+    def set(self, position, timeout=1):
         self.stage.move_to(position)
         self.stage.wait_move()
         time.sleep(timeout)
 
+    def get_position(self):
+        return self.stage.get_position()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stage.close()
 
 class Toptica_Laser():
     def __init__(self, com_port='COM15'):
@@ -343,7 +447,7 @@ class Toptica_Laser():
         self.measure = False
         print('Found laser')
 
-    def set_power(self, power):
+    def set(self, power):
         self.laser.set_channel_power(1, power)
         self.power = power
         params.update({'power': self.power * 1000})
@@ -361,7 +465,7 @@ class HWP_Laser():
         self.measure = False
         print('Found laser')
 
-    def set_power(self, power):
+    def set(self, power):
         self.power = power
         self.motor.move_to(self.power_toangle(self.power))
         time.sleep(1)
