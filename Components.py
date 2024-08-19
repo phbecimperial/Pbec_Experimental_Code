@@ -86,6 +86,40 @@ class Thor_PowerMeter(PowerMeter):
 
 from single_spec_IPC_module import get_spectrum_measure
 
+class Grandaddy_PowerMeter(PowerMeter):
+    def __init__(self, num_power_readings=100, bs_factor=1, wavelength=950, measure=True, laser=False):
+        super().__init__(num_power_readings, bs_factor, wavelength, measure, laser)
+
+        rm = visa.ResourceManager()
+        res_list = rm.list_resources()#
+        port = ''
+        for i in res_list:
+            try:
+                iden = rm.open_resource(i).query('*IDN?')
+            except:
+                print(f'No instrument at {i}')
+            else:
+                if 'NewportCorp' in iden:
+                    port = i
+            
+        if port == '':
+            raise Exception('No Newport 1835-c Power meters Found')
+            
+        self.power_meter = rm.open_resource(i)
+        self.power_meter.write(f'STSIZE {num_power_readings};MODE DCCONT;UNITS W;LAMBDA {wavelength}; SPREC 4096;SFREQ 500;BARGRAPH 1; AUTO 1')
+
+    def take_power_reading(self):
+        reading = float(self.power_meter.query('STMEAN?'))/self.bs_factor
+        return reading
+    
+    def set_wavelength(self, wavelength: float):
+        self.power_meter.write(f'LAMBDA {wavelength}')
+    
+    def set_buffersize(self, size: int):
+        size = min([size, 100])
+        self.power_meter.write(f'STSIZE {size}')
+
+
 
 class Spectrometer():
 
