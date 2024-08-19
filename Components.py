@@ -152,7 +152,7 @@ from microscope.filterwheels.thorlabs import ThorlabsFilterWheel
 
 
 class FilterWheel():
-    def __init__(self, allowed_filter_positions=[0, 5], com_port='COM6'):
+    def __init__(self, allowed_filter_positions=[0,1,2,3,4,5], com_port='COM6'):
         self.allowed_filter_positions = allowed_filter_positions
         self.com_port = com_port
         self.filter_wheel = ThorlabsFilterWheel(com=self.com_port)
@@ -333,7 +333,7 @@ class FLIR_Camera(Camera):
     #     dataset.dataset["CavityCamera"] = camera_data
     #     self.change_exposure(self.standard_exposure)  # Resets
 
-from PIL import Image
+
 class Thor_Camera(Camera):
 
     def __init__(self,
@@ -366,12 +366,13 @@ class Thor_Camera(Camera):
     def get_exposure(self):
         return self.camera.exposure_time_us
     def get_image(self):
+
         self.camera.issue_software_trigger()
         frame = self.tlc.get_pending_frame_or_null(self.camera)
         image_data = frame.image_buffer
-        image = Image.fromarray(image_data)
-        image = np.array(image)
-        return image
+        # image = Image.fromarray(image_data)
+        # image = np.array(image)
+        return image_data*(255/1023)
         # raise Exception('Not implemented')
 
     def get_multiple_images(self, num=10):
@@ -430,6 +431,7 @@ class Translation_Stage():
         self.stage.move_to(position)
         self.stage.wait_move()
         time.sleep(timeout)
+        params.update({'position': self.stage.get_position()})
 
     def get_position(self):
         return self.stage.get_position()

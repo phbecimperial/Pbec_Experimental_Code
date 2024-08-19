@@ -4,14 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f83b769d-dfb0-4914-a75a-804944d3bc6f" name="Changes" comment="Fixed camera exposure time, added laser meter">
-      <change afterPath="$PROJECT_DIR$/Coherence_scan.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/PBec Experimental Code.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/PBec Experimental Code.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="f83b769d-dfb0-4914-a75a-804944d3bc6f" name="Changes" comment="Many many changes. This is the master branch.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Coherence_scan.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Coherence_scan.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Components.py" beforeDir="false" afterPath="$PROJECT_DIR$/Components.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Measure.py" beforeDir="false" afterPath="$PROJECT_DIR$/Measure.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/power_lengthV5.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/power_lengthV5.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,8 +18,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="Jupyter Notebook" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -75,7 +72,7 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.power_lengthV5.1">
     <configuration name="Laser_gui" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PBec Experimental Code" />
       <option name="ENV_FILES" value="" />
@@ -239,7 +236,9 @@
       <workItem from="1722600341422" duration="3171000" />
       <workItem from="1722606274283" duration="4071000" />
       <workItem from="1722859892232" duration="594000" />
-      <workItem from="1723719067420" duration="29525000" />
+      <workItem from="1723719067420" duration="35220000" />
+      <workItem from="1724058100728" duration="4117000" />
+      <workItem from="1724063009963" duration="318000" />
     </task>
     <task id="LOCAL-00001" summary="Updates - works now">
       <option name="closed" value="true" />
@@ -265,7 +264,15 @@
       <option name="project" value="LOCAL" />
       <updated>1722436274992</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Many many changes. This is the master branch.">
+      <option name="closed" value="true" />
+      <created>1723817349979</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1723817349979</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -275,14 +282,15 @@
     <MESSAGE value="Updates - works now" />
     <MESSAGE value="Fixed Timestamps" />
     <MESSAGE value="Fixed camera exposure time, added laser meter" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed camera exposure time, added laser meter" />
+    <MESSAGE value="Many many changes. This is the master branch." />
+    <option name="LAST_COMMIT_MESSAGE" value="Many many changes. This is the master branch." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Measure.py</url>
-          <line>108</line>
+          <line>105</line>
           <option name="timeStamp" value="10" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -296,14 +304,39 @@
           <option name="timeStamp" value="12" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Measure.py</url>
-          <line>60</line>
-          <option name="timeStamp" value="18" />
+          <url>file://$PROJECT_DIR$/Components.py</url>
+          <line>374</line>
+          <option name="timeStamp" value="21" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Components.py</url>
-          <line>212</line>
-          <option name="timeStamp" value="19" />
+          <line>373</line>
+          <option name="timeStamp" value="22" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Components.py</url>
+          <line>371</line>
+          <option name="timeStamp" value="23" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Measure.py</url>
+          <line>58</line>
+          <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Measure.py</url>
+          <line>61</line>
+          <option name="timeStamp" value="25" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Measure.py</url>
+          <line>62</line>
+          <option name="timeStamp" value="26" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Measure.py</url>
+          <line>63</line>
+          <option name="timeStamp" value="27" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
