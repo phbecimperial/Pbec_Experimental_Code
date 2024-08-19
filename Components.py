@@ -2,7 +2,7 @@ import socket
 import winsound
 import sys
 
-from thorlabs_tsi_sdk.tl_camera import TLCameraSDK
+# from thorlabs_tsi_sdk.tl_camera import TLCameraSDK
 
 if socket.gethostname() == "ph-photonbec5":
     sys.path.append("D:/Control/PythonPackages/")
@@ -214,7 +214,7 @@ class FilterWheel():
         self.current_pos_index = 0
 
 class Camera():
-    def __init__(self,min_exposure, max_exposure, measure=True, max_frames=50, algorithm = 'rising', camera_id = None):
+    def __init__(self, min_exposure, max_exposure, measure=True, max_frames=50, algorithm = 'rising', camera_id = None, wheel = True):
         self.camera_id = camera_id
         self.measure = measure
         self.im = None
@@ -225,6 +225,7 @@ class Camera():
         self.max_frames = max_frames
         self.cam_saturated = False
         self.algorithm = algorithm
+        self.wheel = wheel
 
 
     def change_exposure(self, exposure):
@@ -236,7 +237,7 @@ class Camera():
     def get_multiple_images(self, num=10):
         #Return as a list
         raise Exception('Not implemented')
-    def take_pic(self, algorithm='rising'):
+    def take_pic(self):
         #Only works if camera goes between 0 and 255
 
         if self.algorithm == 'rising':
@@ -244,6 +245,7 @@ class Camera():
             self.exposure = self.min_exposure
             # standard_exposure_time = 500000
             # self.camera.begin_acquisition()
+            time.sleep(0.1)
             image = self.get_image()
             while np.amax(image) < 50 and np.amax(image) != 0 and self.exposure < self.max_exposure:
                 self.change_exposure(self.exposure * 2)
@@ -302,7 +304,7 @@ class FLIR_Camera(Camera):
     def __init__(self, camera_id='nathans_dungeon_cavity_NA1', min_exposure=4, max_exposure=500000, measure=True, max_frames=50, algorithm='rising'):
         #Define init to turn on camera.
         from CameraUSB3 import CameraUSB3
-        super().__init__(camera_id, min_exposure, max_exposure, measure, max_frames, algorithm)
+        super().__init__(min_exposure, max_exposure, measure, max_frames, algorithm, camera_id)
         self.camera = CameraUSB3(verbose=True, camera_id=self.camera_id, timeout=1000, acquisition_mode='continuous')
         #Running in continuous mode - faster!
         self.camera.begin_acquisition()
@@ -328,6 +330,12 @@ class FLIR_Camera(Camera):
             images.append(self.get_image())
         return images
         # raise Exception('Not implemented')
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.camera.end_acquisition()
 
     # def take_pic(self):
     #     # Now take a picture
@@ -436,7 +444,6 @@ class Thor_Camera(Camera):
 
 
 
-
 class Laser():
     '''Example function for Laser class. Real world classes appear below.'''
 
@@ -451,9 +458,9 @@ class Laser():
 
 
 class Translation_Stage():
-    def __init__(self, device_id=73852194, scale=20000):
+    def __init__(self, device_id=73852194, scale=20000, is_rack_system=True):
         from pylablib.devices import Thorlabs
-        self.stage = Thorlabs.KinesisMotor(str(device_id), is_rack_system=True, scale=scale)
+        self.stage = Thorlabs.KinesisMotor(str(device_id), is_rack_system=is_rack_system, scale=scale)
         print('Stage Found, postion:', self.stage.get_position())
         self.stage.home()
         self.stage.wait_for_home()
@@ -488,11 +495,12 @@ class Toptica_Laser():
 
 
 import pickle
-import thorlabs_apt as apt
+
 
 
 class HWP_Laser():
     def __init__(self, T_cube_no=int(83854619), path='pwr_toangle.pkl'):
+        import thorlabs_apt as apt
         self.motor = apt.Motor(T_cube_no)
         with open(path, 'rb') as f:
             self.power_toangle, self.pmin, self.pmax = pickle.load(f)

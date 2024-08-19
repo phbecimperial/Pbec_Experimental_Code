@@ -5,7 +5,8 @@ import sys
 import numpy as np
 import pbec_ipc
 from tqdm import tqdm
-
+import warnings
+import re
 
 if socket.gethostname() == "ph-photonbec5":
     sys.path.append(r"D:/Control/PythonPackages/")
@@ -59,11 +60,16 @@ class Measure():
     def camera(self):
         cam = self.comps['camera']
         cam.take_pic()
-        while cam.cam_saturated and round(cam.exposure, 2) <= 2 * round(cam.min_exposure, 2):
+        while cam.cam_saturated and cam.exposure == cam.min_exposure:
             self.comps['wheel'].increase_filter()
+            time.sleep(2)
             cam.take_pic()
 
-
+        try:
+            self.comps['spectrometer'].get_cavity_length()
+        except Exception:
+            self.comps['spectrometer'].cavity_length = np.nan
+            warnings.warn('Spectrometer not avaliable or other error.')
         image_name = str(self.timestamp) + '_' + str(cam.exposure) + '_' + str(self.power) + '_' + str(
             self.comps['spectrometer'].cavity_length) + '_' + str(self.PCA)
         cam.save_pic(self.dataset, image_name)
@@ -75,6 +81,7 @@ class Measure():
 
         for key, value in self.comps.items(): #Get names and component objects from dictionary
             if value.measure == True:
+                #key = re.sub(r'\d', '', key)
                 measure_func = getattr(self, key)
                 measure_func()
                 print(key, 'complete')
@@ -160,11 +167,11 @@ def threshold_scan(p_list, scale=0.2, new_points=2,
 
 def power_scan(p_list, components, pca=np.nan):
     time_stamps = []
+    components['wheel'].reset()
     for pwr in tqdm(p_list, leave=True):
         # Reset
         components['laser'].set(pwr)
         print('PCA:', pca)
-        components['wheel'].reset()
         # Set up measure class
         measure = Measure(components, pwr, pca)
         # Take measurement
