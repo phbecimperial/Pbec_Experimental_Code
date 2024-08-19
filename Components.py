@@ -186,7 +186,7 @@ from microscope.filterwheels.thorlabs import ThorlabsFilterWheel
 
 
 class FilterWheel():
-    def __init__(self, allowed_filter_positions=[0,1,2,3,4,5], com_port='COM6'):
+    def __init__(self, allowed_filter_positions=[0,5], com_port='COM6'):
         self.allowed_filter_positions = allowed_filter_positions
         self.com_port = com_port
         self.filter_wheel = ThorlabsFilterWheel(com=self.com_port)
@@ -206,7 +206,7 @@ class FilterWheel():
         else:
             self.filter_wheel.set_position(self.allowed_filter_positions[self.current_pos_index + 1])
             self.current_pos_index = self.current_pos_index + 1
-            time.sleep(2.5)
+            time.sleep(5)
             params.update({'nd_filter': self.allowed_filter_positions[self.current_pos_index]})
 
     def reset(self):
@@ -282,8 +282,8 @@ class Camera():
 
         ims = self.get_multiple_images(n_frames)
         self.im = np.sum(ims, axis=0) / n_frames
-
-        if np.amax(image) == 255:
+        print('Max pixel: ', np.amax(self.im))
+        if np.amax(self.im) == 255:
             self.cam_saturated = True
         else:
             self.cam_saturated = False
