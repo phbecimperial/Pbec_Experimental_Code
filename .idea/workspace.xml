@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="f83b769d-dfb0-4914-a75a-804944d3bc6f" name="Changes" comment="Working power length loop with all mixed works 100%% has posistion and working power all done">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Components.py" beforeDir="false" afterPath="$PROJECT_DIR$/Components.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Measure.py" beforeDir="false" afterPath="$PROJECT_DIR$/Measure.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/power_lengthV5.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/power_lengthV5.ipynb" afterDir="false" />
     </list>
@@ -252,7 +251,7 @@
       <workItem from="1722332956168" duration="2841000" />
       <workItem from="1722339705668" duration="33805000" />
       <workItem from="1722504154673" duration="28952000" />
-      <workItem from="1724077236340" duration="7590000" />
+      <workItem from="1724077236340" duration="13920000" />
     </task>
     <task id="LOCAL-00001" summary="Updates - works now">
       <option name="closed" value="true" />
@@ -294,7 +293,15 @@
       <option name="project" value="LOCAL" />
       <updated>1724083962381</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Working power length loop with all mixed works 100%% has posistion and working power all done">
+      <option name="closed" value="true" />
+      <created>1724085859728</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1724085859728</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -350,6 +357,16 @@
           <url>notebook://C:/Semiconductor Cavity/WheelBEC/Experimental Code/Length_calib.ipynb</url>
           <line>19</line>
           <option name="timeStamp" value="13" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>notebook://C:/Semiconductor Cavity/WheelBEC/Experimental Code/power_lengthV5.ipynb</url>
+          <line>9</line>
+          <option name="timeStamp" value="18" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>notebook://C:/Semiconductor Cavity/WheelBEC/Experimental Code/power_lengthV5.ipynb</url>
+          <line>41</line>
+          <option name="timeStamp" value="19" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
