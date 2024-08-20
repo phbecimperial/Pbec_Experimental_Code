@@ -67,12 +67,12 @@ class Measure():
             cam.take_pic()
 
         try:
-            self.comps['spectrometer'].get_cavity_length()
+           cavity_length = self.comps['spectrometer'].cavity_length
         except Exception:
-            self.comps['spectrometer'].cavity_length = np.nan
+            cavity_length = np.nan
             warnings.warn('Spectrometer not avaliable or other error.')
         image_name = str(self.timestamp) + '_' + str(cam.exposure) + '_' + str(self.power) + '_' + str(
-            self.comps['spectrometer'].cavity_length) + '_' + str(self.PCA)
+            cavity_length) + '_' + str(self.PCA)
         cam.save_pic(self.dataset, image_name)
 
 
