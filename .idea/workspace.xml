@@ -4,11 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f83b769d-dfb0-4914-a75a-804944d3bc6f" name="Changes" comment="Many many changes. This is the master branch.">
+    <list default="true" id="f83b769d-dfb0-4914-a75a-804944d3bc6f" name="Changes" comment="Working power length loop with all mixed works 100%% has posistion and working power all done">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Coherence_scan.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Coherence_scan.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Components.py" beforeDir="false" afterPath="$PROJECT_DIR$/Components.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Measure.py" beforeDir="false" afterPath="$PROJECT_DIR$/Measure.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/power_lengthV5.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/power_lengthV5.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,12 +26,6 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory">{
-  &quot;lastFilter&quot;: {
-    &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;phbecimperial&quot;
-  }
-}</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/phbecimperial/Pbec_Experimental_Code.git&quot;,
@@ -56,6 +50,7 @@
     &quot;Python.Laser_gui.executor&quot;: &quot;Run&quot;,
     &quot;Python.Power_calibv2.executor&quot;: &quot;Run&quot;,
     &quot;Python.power_lengthV5.1.executor&quot;: &quot;Run&quot;,
+    &quot;Python.power_length_disp.executor&quot;: &quot;Run&quot;,
     &quot;Python.thermal_fit_single.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
@@ -72,7 +67,7 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.power_lengthV5.1">
+  <component name="RunManager" selected="Python.power_length_disp">
     <configuration name="Laser_gui" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PBec Experimental Code" />
       <option name="ENV_FILES" value="" />
@@ -165,6 +160,29 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="power_length_disp" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="PBec Experimental Code" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/power_length_disp.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="thermal_fit_single" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PBec Experimental Code" />
       <option name="ENV_FILES" value="" />
@@ -189,6 +207,7 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.power_length_disp" />
       <item itemvalue="Python.power_lengthV5.1" />
       <item itemvalue="Python.thermal_fit_single" />
       <item itemvalue="Python.Laser_gui" />
@@ -196,18 +215,18 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.power_length_disp" />
+        <item itemvalue="Python.thermal_fit_single" />
         <item itemvalue="Python.Power_calibv2" />
         <item itemvalue="Python.Laser_gui" />
         <item itemvalue="Python.power_lengthV5.1" />
-        <item itemvalue="Python.thermal_fit_single" />
       </list>
     </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-PY-241.18034.82" />
-        <option value="bundled-python-sdk-975db3bf15a3-2767605e8bc2-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-241.18034.82" />
+        <option value="bundled-python-sdk-5a2391486177-2887949eec09-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.13763.11" />
       </set>
     </attachedChunks>
   </component>
@@ -233,12 +252,7 @@
       <workItem from="1722332956168" duration="2841000" />
       <workItem from="1722339705668" duration="33805000" />
       <workItem from="1722504154673" duration="28952000" />
-      <workItem from="1722600341422" duration="3171000" />
-      <workItem from="1722606274283" duration="4071000" />
-      <workItem from="1722859892232" duration="594000" />
-      <workItem from="1723719067420" duration="35220000" />
-      <workItem from="1724058100728" duration="4117000" />
-      <workItem from="1724063009963" duration="318000" />
+      <workItem from="1724077236340" duration="7590000" />
     </task>
     <task id="LOCAL-00001" summary="Updates - works now">
       <option name="closed" value="true" />
@@ -264,88 +278,94 @@
       <option name="project" value="LOCAL" />
       <updated>1722436274992</updated>
     </task>
-    <task id="LOCAL-00004" summary="Many many changes. This is the master branch.">
+    <task id="LOCAL-00004" summary="Working power length loop with all mixed works 100%% has posistion and working power all done">
       <option name="closed" value="true" />
-      <created>1723817349979</created>
+      <created>1724083921171</created>
       <option name="number" value="00004" />
       <option name="presentableId" value="LOCAL-00004" />
       <option name="project" value="LOCAL" />
-      <updated>1723817349979</updated>
+      <updated>1724083921171</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Working power length loop with all mixed works 100%% has posistion and working power all done">
+      <option name="closed" value="true" />
+      <created>1724083962381</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1724083962381</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Updates - works now" />
     <MESSAGE value="Fixed Timestamps" />
     <MESSAGE value="Fixed camera exposure time, added laser meter" />
-    <MESSAGE value="Many many changes. This is the master branch." />
-    <option name="LAST_COMMIT_MESSAGE" value="Many many changes. This is the master branch." />
+    <MESSAGE value="Working power length loop with all mixed works 100%% has posistion and working power all done" />
+    <option name="LAST_COMMIT_MESSAGE" value="Working power length loop with all mixed works 100%% has posistion and working power all done" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Measure.py</url>
-          <line>105</line>
+          <line>107</line>
           <option name="timeStamp" value="10" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Measure.py</url>
-          <line>48</line>
+          <line>47</line>
           <option name="timeStamp" value="11" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Measure.py</url>
-          <line>30</line>
+          <line>29</line>
           <option name="timeStamp" value="12" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Components.py</url>
-          <line>374</line>
-          <option name="timeStamp" value="21" />
+          <url>file://$PROJECT_DIR$/power_length_disp.py</url>
+          <line>11</line>
+          <option name="timeStamp" value="14" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Components.py</url>
-          <line>373</line>
-          <option name="timeStamp" value="22" />
+          <line>249</line>
+          <option name="timeStamp" value="17" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Components.py</url>
-          <line>371</line>
-          <option name="timeStamp" value="23" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Measure.py</url>
-          <line>58</line>
-          <option name="timeStamp" value="24" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Measure.py</url>
-          <line>61</line>
-          <option name="timeStamp" value="25" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Measure.py</url>
-          <line>62</line>
-          <option name="timeStamp" value="26" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Measure.py</url>
-          <line>63</line>
-          <option name="timeStamp" value="27" />
+        <line-breakpoint enabled="true" suspend="THREAD" type="jupyter-line">
+          <url>notebook://C:/Semiconductor Cavity/WheelBEC/Experimental Code/Length_calib.ipynb</url>
+          <line>19</line>
+          <option name="timeStamp" value="13" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="np.max(image)" language="Python" />
+        <watch expression="np.amax(image)" language="Python" />
+        <watch expression="self.exposure" language="Python" />
+      </configuration>
+    </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Experimental_Code$power_lengthV5_1.coverage" NAME="power_lengthV5.1 Coverage Results" MODIFIED="1722554432065" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Pbec_Experimental_Code$Power_calibv2.coverage" NAME="Power_calibv2 Coverage Results" MODIFIED="1723728102660" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Experimental_Code$Power_calibv2.coverage" NAME="Power_calibv2 Coverage Results" MODIFIED="1722592352538" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Experimental_Code$thermal_fit_single.coverage" NAME="thermal_fit_single Coverage Results" MODIFIED="1722522954724" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Experimental_Code$thermal_fit_single.coverage" NAME="thermal_fit_single Coverage Results" MODIFIED="1724077597864" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Experimental_Code$power_length_disp.coverage" NAME="power_length_disp Coverage Results" MODIFIED="1724080409155" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Experimental_Code$Laser_gui.coverage" NAME="Laser_gui Coverage Results" MODIFIED="1722555865407" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
