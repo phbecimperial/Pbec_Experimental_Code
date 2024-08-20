@@ -85,7 +85,7 @@ class Measure():
                 #key = re.sub(r'\d', '', key)
                 measure_func = getattr(self, key)
                 measure_func()
-                logging.info(key, 'complete')
+                logging.info(f'{key} complete')
 
         comp.update_dataset(self.dataset)
 

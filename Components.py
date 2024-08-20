@@ -251,6 +251,9 @@ class Camera():
             while np.amax(image) < 50 and np.amax(image) != 0 and self.exposure < self.max_exposure:
                 self.change_exposure(self.exposure * 2)
                 image = self.get_image()
+
+                logging.info(f'Image Exposure: {self.exposure}')
+
                 time.sleep(self.exposure * 1e-6)
 
         elif self.algorithm == 'falling':
@@ -414,6 +417,9 @@ class Thor_Camera(Camera):
         frame = self.tlc.get_pending_frame_or_null(self.camera)
         image_data = frame.image_buffer
         # image = Image.fromarray(image_data)
+        # import matplotlib.pyplot as plt
+        # plt.imshow(image_data)
+        # plt.show()
         # image = np.array(image)
         return image_data*(255/1023)
         # raise Exception('Not implemented')
@@ -463,7 +469,7 @@ class Translation_Stage():
     def __init__(self, device_id=73852194, scale=20000, is_rack_system=True):
         from pylablib.devices import Thorlabs
         self.stage = Thorlabs.KinesisMotor(str(device_id), is_rack_system=is_rack_system, scale=scale)
-        logging.info('Stage Found, postion:', self.stage.get_position())
+        logging.info(f'Stage Found, postion: {self.stage.get_position()}')
         self.stage.home()
         self.stage.wait_for_home()
         logging.info("Stage is homed and operational")
