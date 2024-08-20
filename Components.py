@@ -1,5 +1,6 @@
 import socket
 import winsound
+import logging
 import sys
 
 # from thorlabs_tsi_sdk.tl_camera import TLCameraSDK
@@ -34,8 +35,8 @@ def update_dataset(dataset):
 
 
 def set_lock(PCA):
-    print(PCA)
-    print(pbec_ipc.PORT_NUMBERS["cavity_lock"])
+    logging.info(f'Set to PCA : {PCA}')
+    loging.info(f"Cavity lock Port {pbec_ipc.PORT_NUMBERS['cavity_lock']}")
     pbec_ipc.ipc_exec("setSetPoint(" + str(float(PCA)) + ")", port=pbec_ipc.PORT_NUMBERS["cavity_lock"])
 
 class PowerMeter():
@@ -61,7 +62,7 @@ class Thor_PowerMeter(PowerMeter):
         self.power_meter = GenericPM(power_meter_usb_name)
         self.power_meter.set_sensor_mode('power')
         self.power_meter.set_wavelength(wavelength)
-        print('Found power meter')
+        logging.info('Found power meter')
 
     def take_power_reading(self):
         '''
@@ -78,7 +79,7 @@ class Thor_PowerMeter(PowerMeter):
         reading = np.mean(ps) / self.bs_factor
         if self.laser:
             params.update({'power': reading * 1000})
-            print('power reading', reading * 1000)
+            logging.info('Laser power reading:', reading * 1000)
         else:
             params.update({'meter_reading': reading})
         return reading
@@ -97,7 +98,7 @@ class Grandaddy_PowerMeter(PowerMeter):
             try:
                 iden = rm.open_resource(i).query('*IDN?')
             except:
-                print(f'No instrument at {i}')
+                logging.error(f'No instrument at {i}')
             else:
                 if 'NewportCorp' in iden:
                     port = i
@@ -144,7 +145,7 @@ class Spectrometer():
         self.measure = measure
         self.min_lamb = min_lamb
         params.update({"spectrometer_nd_filter": float(spec_nd)})  # For backwards compatibility
-        print('Found spectrometer')
+        logging.info('Found spectrometer')
 
 
     def get_spectrometer_data(self, int_time, total_time):
@@ -171,7 +172,7 @@ class Spectrometer():
         spec = self.spectrum[self.lamb > self.min_lamb]
         self.cavity_length = lamb[np.argmax(spec)]
         params.update({'cavity_length': self.cavity_length})
-        print(self.cavity_length)
+        logging.info(f'Getting cavity length: {self.cavity_length}')
         return self.cavity_length
 
     def save_reset(self, dataset, timestamp):
@@ -268,7 +269,7 @@ class Camera():
                 exposure_time = self.get_exposure_time()
                 image = self.get_image()
                 time.sleep(exposure_time * 1e-6)
-                print(exposure_time)
+                # logging.info(f' exposure time{exposure_time}')
 
             raise Exception('Not implemented')
 
@@ -276,13 +277,13 @@ class Camera():
             raise Exception('Not implemented')
 
         n_frames = min(self.max_frames, round(self.max_exposure / self.exposure))
-        print('n_frames', n_frames)
+        logging.info(f'Taking picture with {n_frames} frames')
 
 
 
         ims = self.get_multiple_images(n_frames)
         self.im = np.sum(ims, axis=0) / n_frames
-        print('Max pixel: ', np.amax(self.im))
+        # print('Max pixel: ', np.amax(self.im))
         if np.amax(self.im) == 255:
             self.cam_saturated = True
         else:
@@ -308,7 +309,7 @@ class FLIR_Camera(Camera):
         self.camera = CameraUSB3(verbose=True, camera_id=self.camera_id, timeout=1000, acquisition_mode='continuous')
         #Running in continuous mode - faster!
         self.camera.begin_acquisition()
-        print('Found Cameras')
+        logging.info('Found Cameras')
 
     def change_exposure(self, exposure_time):
         # Warning: camera will typically round some values - below 20, to the nearest 4!
@@ -396,7 +397,7 @@ class Thor_Camera(Camera):
         self.tlc = TLCamera
         available_cameras = self.sdk.discover_available_cameras()
         if len(available_cameras) < 1:
-            print("no cameras detected")
+            logging.error("no cameras detected")
         self.camera = self.sdk.open_camera(available_cameras[0])
         self.tlc.arm(self.camera,50)
 
@@ -462,10 +463,10 @@ class Translation_Stage():
     def __init__(self, device_id=73852194, scale=20000, is_rack_system=True):
         from pylablib.devices import Thorlabs
         self.stage = Thorlabs.KinesisMotor(str(device_id), is_rack_system=is_rack_system, scale=scale)
-        print('Stage Found, postion:', self.stage.get_position())
+        logging.info('Stage Found, postion:', self.stage.get_position())
         self.stage.home()
         self.stage.wait_for_home()
-        print("Stage is homed and operational")
+        logging.info("Stage is homed and operational")
         self.measure = False
 
     def set(self, position, timeout=1):
@@ -488,7 +489,7 @@ class Toptica_Laser():
         from pylablib.devices import Toptica
         self.laser = Toptica.TopticaIBeam(com_port)
         self.measure = False
-        print('Found laser')
+        logging.info('Found laser')
 
     def set(self, power):
         self.laser.set_channel_power(1, power)
@@ -507,7 +508,7 @@ class HWP_Laser():
         with open(path, 'rb') as f:
             self.power_toangle, self.pmin, self.pmax = pickle.load(f)
         self.measure = False
-        print('Found laser')
+        logging.info('Found HWP motor')
 
     def set(self, power):
         self.power = power

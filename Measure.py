@@ -1,10 +1,11 @@
 import time
+import logging
 import Components as comp
 import socket
 import sys
 import numpy as np
 import pbec_ipc
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 import warnings
 import re
 
@@ -84,7 +85,7 @@ class Measure():
                 #key = re.sub(r'\d', '', key)
                 measure_func = getattr(self, key)
                 measure_func()
-                print(key, 'complete')
+                logging.info(key, 'complete')
 
         comp.update_dataset(self.dataset)
 
@@ -171,14 +172,14 @@ def power_scan(p_list, components, pca=np.nan):
     for pwr in tqdm(p_list, leave=True):
         # Reset
         components['laser'].set(pwr)
-        print('PCA:', pca)
+        logging.info('PCA:', pca)
         # Set up measure class
         measure = Measure(components, pwr, pca)
         # Take measurement
         timestamp = measure.take_measurement()
         time_stamps.append(timestamp)
 
-    print(time_stamps[0], time_stamps[-1])
+    logging.info(time_stamps[0], time_stamps[-1])
     return time_stamps
 
 def coherence_scan(position_list, components,pca=np.nan):
