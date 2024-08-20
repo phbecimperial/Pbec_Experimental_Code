@@ -1,8 +1,9 @@
 import socket
 import winsound
+import logging
 import sys
 
-from thorlabs_tsi_sdk.tl_camera import TLCameraSDK
+# from thorlabs_tsi_sdk.tl_camera import TLCameraSDK
 
 if socket.gethostname() == "ph-photonbec5":
     sys.path.append("D:/Control/PythonPackages/")
@@ -34,8 +35,8 @@ def update_dataset(dataset):
 
 
 def set_lock(PCA):
-    print(PCA)
-    print(pbec_ipc.PORT_NUMBERS["cavity_lock"])
+    logging.info(f'Set to PCA : {PCA}')
+    loging.info(f"Cavity lock Port {pbec_ipc.PORT_NUMBERS['cavity_lock']}")
     pbec_ipc.ipc_exec("setSetPoint(" + str(float(PCA)) + ")", port=pbec_ipc.PORT_NUMBERS["cavity_lock"])
 
 class PowerMeter():
@@ -82,7 +83,7 @@ class Thor_PowerMeter(PowerMeter):
         self.power_meter = GenericPM(power_meter_usb_name)
         self.power_meter.set_sensor_mode('power')
         self.power_meter.set_wavelength(wavelength)
-        print('Found power meter')
+        logging.info('Found power meter')
 
     def take_power_reading(self):
         '''
@@ -95,6 +96,7 @@ class Thor_PowerMeter(PowerMeter):
             ps.append(self.power_meter.get_power())
         reading = np.mean(ps) / self.bs_factor
         params.update({'{}_meter_reading'.format(self.label): reading})
+        logging.info('{}_meter_reading'.format(self.label)', reading * 1000)
         return reading
 
 
@@ -119,7 +121,7 @@ class Grandaddy_PowerMeter(PowerMeter):
             try:
                 iden = rm.open_resource(i).query('*IDN?')
             except:
-                print(f'No instrument at {i}')
+                logging.error(f'No instrument at {i}')
             else:
                 if 'NewportCorp' in iden:
                     port = i
@@ -167,7 +169,7 @@ class Spectrometer():
         self.measure = measure
         self.min_lamb = min_lamb
         params.update({"spectrometer_nd_filter": float(spec_nd)})  # For backwards compatibility
-        print('Found spectrometer')
+        logging.info('Found spectrometer')
 
 
     def get_spectrometer_data(self, int_time, total_time):
@@ -194,7 +196,7 @@ class Spectrometer():
         spec = self.spectrum[self.lamb > self.min_lamb]
         self.cavity_length = lamb[np.argmax(spec)]
         params.update({'cavity_length': self.cavity_length})
-        print(self.cavity_length)
+        logging.info(f'Getting cavity length: {self.cavity_length}')
         return self.cavity_length
 
     def save_reset(self, dataset, timestamp):
@@ -209,7 +211,7 @@ from microscope.filterwheels.thorlabs import ThorlabsFilterWheel
 
 
 class FilterWheel():
-    def __init__(self, allowed_filter_positions=[0,1,2,3,4,5], com_port='COM6'):
+    def __init__(self, allowed_filter_positions=[0,5], com_port='COM6'):
         self.allowed_filter_positions = allowed_filter_positions
         self.com_port = com_port
         self.filter_wheel = ThorlabsFilterWheel(com=self.com_port)
@@ -229,7 +231,7 @@ class FilterWheel():
         else:
             self.filter_wheel.set_position(self.allowed_filter_positions[self.current_pos_index + 1])
             self.current_pos_index = self.current_pos_index + 1
-            time.sleep(2.5)
+            time.sleep(5)
             params.update({'nd_filter': self.allowed_filter_positions[self.current_pos_index]})
 
     def reset(self):
@@ -237,7 +239,7 @@ class FilterWheel():
         self.current_pos_index = 0
 
 class Camera():
-    def __init__(self,min_exposure, max_exposure, measure=True, max_frames=50, algorithm = 'rising', camera_id = None):
+    def __init__(self, min_exposure, max_exposure, measure=True, max_frames=50, algorithm = 'rising', camera_id = None, wheel = True):
         self.camera_id = camera_id
         self.measure = measure
         self.im = None
@@ -248,6 +250,7 @@ class Camera():
         self.max_frames = max_frames
         self.cam_saturated = False
         self.algorithm = algorithm
+        self.wheel = wheel
 
 
     def change_exposure(self, exposure):
@@ -259,7 +262,7 @@ class Camera():
     def get_multiple_images(self, num=10):
         #Return as a list
         raise Exception('Not implemented')
-    def take_pic(self, algorithm='rising'):
+    def take_pic(self):
         #Only works if camera goes between 0 and 255
 
         if self.algorithm == 'rising':
@@ -267,10 +270,14 @@ class Camera():
             self.exposure = self.min_exposure
             # standard_exposure_time = 500000
             # self.camera.begin_acquisition()
+            time.sleep(0.1)
             image = self.get_image()
             while np.amax(image) < 50 and np.amax(image) != 0 and self.exposure < self.max_exposure:
                 self.change_exposure(self.exposure * 2)
                 image = self.get_image()
+
+                logging.info(f'Image Exposure: {self.exposure}')
+
                 time.sleep(self.exposure * 1e-6)
 
         elif self.algorithm == 'falling':
@@ -289,7 +296,7 @@ class Camera():
                 exposure_time = self.get_exposure_time()
                 image = self.get_image()
                 time.sleep(exposure_time * 1e-6)
-                print(exposure_time)
+                # logging.info(f' exposure time{exposure_time}')
 
             raise Exception('Not implemented')
 
@@ -297,14 +304,14 @@ class Camera():
             raise Exception('Not implemented')
 
         n_frames = min(self.max_frames, round(self.max_exposure / self.exposure))
-        print('n_frames', n_frames)
+        logging.info(f'Taking picture with {n_frames} frames')
 
 
 
         ims = self.get_multiple_images(n_frames)
         self.im = np.sum(ims, axis=0) / n_frames
-
-        if np.amax(image) == 255:
+        # print('Max pixel: ', np.amax(self.im))
+        if np.amax(self.im) == 255:
             self.cam_saturated = True
         else:
             self.cam_saturated = False
@@ -325,11 +332,11 @@ class FLIR_Camera(Camera):
     def __init__(self, camera_id='nathans_dungeon_cavity_NA1', min_exposure=4, max_exposure=500000, measure=True, max_frames=50, algorithm='rising'):
         #Define init to turn on camera.
         from CameraUSB3 import CameraUSB3
-        super().__init__(camera_id, min_exposure, max_exposure, measure, max_frames, algorithm)
+        super().__init__(min_exposure, max_exposure, measure, max_frames, algorithm, camera_id)
         self.camera = CameraUSB3(verbose=True, camera_id=self.camera_id, timeout=1000, acquisition_mode='continuous')
         #Running in continuous mode - faster!
         self.camera.begin_acquisition()
-        print('Found Cameras')
+        logging.info('Found Cameras')
 
     def change_exposure(self, exposure_time):
         # Warning: camera will typically round some values - below 20, to the nearest 4!
@@ -352,6 +359,50 @@ class FLIR_Camera(Camera):
         return images
         # raise Exception('Not implemented')
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.camera.end_acquisition()
+
+    # def take_pic(self):
+    #     # Now take a picture
+    #     # algorithm, rising
+    #
+    #     self.change_exposure(self.standard_exposure)
+    #     # standard_exposure_time = 500000
+    #     self.camera.begin_acquisition()
+    #     image = self.camera.get_image()
+    #     while np.amax(image) < 50 and np.amax(image) != 0 and self.exposure < 500000:
+    #         counts = np.unique(image, return_counts=True)[1]
+    #         if self.exposure < 20:  # dumb camera things
+    #             self.change_exposure(max(5, self.exposure * 1.8))
+    #         else:
+    #             self.change_exposure(self.exposure * 2)
+    #         image = self.camera.get_image()
+    #         time.sleep(self.exposure * 1e-6)
+    #         # print(self.exposure)
+    #
+    #     n_frames = min(50, round(500000 / self.exposure))
+    #     print('n_frames', n_frames)
+    #     frames = list()
+    #     for i in range(0, n_frames):
+    #         frames.append(self.camera.get_image())
+    #         time.sleep(self.exposure * 1e-6)
+    #     self.im = np.sum(frames, axis=0) / n_frames
+    #
+    #     self.camera.end_acquisition()
+    #
+    #     params.update({"camera_integration_time": int(self.exposure)})
+    #
+    #     return self.im
+
+    # def save_pic(self, dataset, fname):
+    #     camera_data = CameraData(fname, extension='_.png')
+    #     camera_data.data = self.im
+    #     dataset.dataset["CavityCamera"] = camera_data
+    #     self.change_exposure(self.standard_exposure)  # Resets
+
 
 class Thor_Camera(Camera):
 
@@ -373,7 +424,7 @@ class Thor_Camera(Camera):
         self.tlc = TLCamera
         available_cameras = self.sdk.discover_available_cameras()
         if len(available_cameras) < 1:
-            print("no cameras detected")
+            logging.error("no cameras detected")
         self.camera = self.sdk.open_camera(available_cameras[0])
         self.tlc.arm(self.camera,50)
 
@@ -390,6 +441,9 @@ class Thor_Camera(Camera):
         frame = self.tlc.get_pending_frame_or_null(self.camera)
         image_data = frame.image_buffer
         # image = Image.fromarray(image_data)
+        # import matplotlib.pyplot as plt
+        # plt.imshow(image_data)
+        # plt.show()
         # image = np.array(image)
         return image_data*(255/1023)
         # raise Exception('Not implemented')
@@ -422,7 +476,6 @@ class Thor_Camera(Camera):
 
 
 
-
 class Laser():
     '''Example function for Laser class. Real world classes appear below.'''
 
@@ -437,13 +490,13 @@ class Laser():
 
 
 class Translation_Stage():
-    def __init__(self, device_id=73852194, scale=20000):
+    def __init__(self, device_id=73852194, scale=20000, is_rack_system=True):
         from pylablib.devices import Thorlabs
-        self.stage = Thorlabs.KinesisMotor(str(device_id), is_rack_system=True, scale=scale)
-        print('Stage Found, postion:', self.stage.get_position())
+        self.stage = Thorlabs.KinesisMotor(str(device_id), is_rack_system=is_rack_system, scale=scale)
+        logging.info(f'Stage Found, postion: {self.stage.get_position()}')
         self.stage.home()
         self.stage.wait_for_home()
-        print("Stage is homed and operational")
+        logging.info("Stage is homed and operational")
         self.measure = False
 
     def set(self, position, timeout=1):
@@ -466,7 +519,7 @@ class Toptica_Laser():
         from pylablib.devices import Toptica
         self.laser = Toptica.TopticaIBeam(com_port)
         self.measure = False
-        print('Found laser')
+        logging.info('Found laser')
 
     def set(self, power):
         self.laser.set_channel_power(1, power)
@@ -475,16 +528,17 @@ class Toptica_Laser():
 
 
 import pickle
-import thorlabs_apt as apt
+
 
 
 class HWP_Laser():
     def __init__(self, T_cube_no=int(83854619), path='pwr_toangle.pkl'):
+        import thorlabs_apt as apt
         self.motor = apt.Motor(T_cube_no)
         with open(path, 'rb') as f:
             self.power_toangle, self.pmin, self.pmax = pickle.load(f)
         self.measure = False
-        print('Found laser')
+        logging.info('Found HWP motor')
 
     def set(self, power):
         self.power = power
