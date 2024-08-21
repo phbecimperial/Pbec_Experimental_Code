@@ -63,7 +63,7 @@ class Measure():
         cam.take_pic()
         while cam.cam_saturated and cam.exposure == cam.min_exposure:
             self.comps['wheel'].increase_filter()
-            time.sleep(5)
+            time.sleep(1)
             cam.take_pic()
 
         try:
