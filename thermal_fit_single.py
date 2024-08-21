@@ -84,16 +84,15 @@ def quad_gauss(x, y, amp1, x1, y1, x2, y2, s1, amp2, s2, background):
 def fit_gaussian2d(data, fit_func, i=0, sf=0.3, plot=False, crop=100):
     # data = data[0:900, 500:900]
 
+
+
     data[data == 255.0] = 0
 
     data = data / np.max(data)
     data_spline = data
     data_spline = scipy.ndimage.gaussian_filter(data_spline, 3)
-    plt.imshow(data_spline)
-    plt.show()
+
     data_spline = scipy.ndimage.zoom(data_spline, sf)
-    plt.imshow(data_spline)
-    plt.show()
 
     # max_args = np.unravel_index(data_spline.argmax(), data_spline.shape)
     # data_spline = data_spline[(max_args[0]-crop):(max_args[0]+crop), (max_args[1]-crop):(max_args[1]+crop)]
@@ -319,28 +318,28 @@ def fit_single(data, i=0, sf=0.3, plot=False, crop_point=[], crop_size=100):
 # ldpickle = False
 
 # No convolution!
+if __name__ == '__main__':
+    a = 0
+    outputs = []
+    # if not ldpickle:
+    # mps, sps, pic = opensort(cpath, ctstamp)
+    # pic = pic[6]
 
-a = 0
-outputs = []
-# if not ldpickle:
-# mps, sps, pic = opensort(cpath, ctstamp)
-# pic = pic[6]
+    # pic = np.array(Image.open(r'D:\Data\2024\202402\Pump_spot_displaced_20240222.bmp'), dtype=float)
 
-# pic = np.array(Image.open(r'D:\Data\2024\202402\Pump_spot_displaced_20240222.bmp'), dtype=float)
+    aligned_pic = np.array(Image.open(r'C:\Data\2024\PumpSpotLocation\21_08_aligned.bmp'), dtype=float)
 
-aligned_pic = np.array(Image.open(r'C:\Data\2024\PumpSpotLocation\19_08_aligned.bmp'), dtype=float)
+    pic = np.array(Image.open(r'C:\Data\2024\PumpSpotLocation\21_08_aligned.bmp'), dtype=float)
 
-pic = np.array(Image.open(r'C:\Data\2024\PumpSpotLocation\19_08_aligned.bmp'), dtype=float)
+    plt.imshow(pic)
+    plt.title('Data')
+    plt.show()
 
-plt.imshow(pic)
-plt.title('Data')
-plt.show()
+    crop_point = np.array(np.unravel_index(aligned_pic.argmax(), aligned_pic.shape))
+    crop_point[0] -= 0 #Fix displacement
+    crop_point[1] -= 1
+    print(crop_point)
 
-crop_point = np.array(np.unravel_index(aligned_pic.argmax(), aligned_pic.shape))
-crop_point[0] -= 0 #Fix displacement
-crop_point[1] -= 1
-print(crop_point)
+    result = fit_single(pic, i=0, sf=1, plot=True, crop_point=crop_point, crop_size=200)  # What you change
 
-result = fit_single(pic, i=0, sf=1, plot=True, crop_point=crop_point, crop_size=200)  # What you change
-
-print('result')
+    print('result')

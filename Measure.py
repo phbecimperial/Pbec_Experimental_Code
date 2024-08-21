@@ -74,6 +74,7 @@ class Measure():
         image_name = str(self.timestamp) + '_' + str(cam.exposure) + '_' + str(self.power) + '_' + str(
             cavity_length) + '_' + str(self.PCA)
         cam.save_pic(self.dataset, image_name)
+        return image_name + '_.png'
 
 
 
@@ -90,7 +91,7 @@ class Measure():
         comp.update_dataset(self.dataset)
 
         self.dataset.saveAllData()
-        return str(self.timestamp)
+        return str(self.timestamp), self.dataset
 
 
 def threshold_scan(p_list, scale=0.2, new_points=2,
@@ -172,14 +173,14 @@ def power_scan(p_list, components, pca=np.nan):
     for pwr in tqdm(p_list, leave=True):
         # Reset
         components['laser'].set(pwr)
-        logging.info('PCA:', pca)
+        logging.info(f'PCA: {pca}')
         # Set up measure class
         measure = Measure(components, pwr, pca)
         # Take measurement
         timestamp = measure.take_measurement()
         time_stamps.append(timestamp)
 
-    logging.info(time_stamps[0], time_stamps[-1])
+    logging.info(f'{time_stamps[0], time_stamps[-1]}')
     return time_stamps
 
 def coherence_scan(position_list, components,pca=np.nan):

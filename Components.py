@@ -36,7 +36,7 @@ def update_dataset(dataset):
 
 def set_lock(PCA):
     logging.info(f'Set to PCA : {PCA}')
-    loging.info(f"Cavity lock Port {pbec_ipc.PORT_NUMBERS['cavity_lock']}")
+    logging.info(f"Cavity lock Port {pbec_ipc.PORT_NUMBERS['cavity_lock']}")
     pbec_ipc.ipc_exec("setSetPoint(" + str(float(PCA)) + ")", port=pbec_ipc.PORT_NUMBERS["cavity_lock"])
 
 class PowerMeter():
