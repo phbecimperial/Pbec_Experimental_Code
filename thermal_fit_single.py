@@ -199,7 +199,7 @@ def fit_single(data, sf=0.3, plot=False, crop_point=[100, 100], crop_size=100, r
     Fits 2D gaussian to image, calculates displacement from given position and the beam radius in um
 
     :param data: image to fit
-    :param sf: scale factor to apply to image, may be broken
+    :param sf: scale factor to apply to image, may be broken keep to 1 if unsure
     :param plot: if true plots fit
     :param crop_point: point about which to crop
     :param crop_size: size to crop image around, dont make too large, will break
