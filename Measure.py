@@ -16,11 +16,16 @@ from pbec_analysis import make_timestamp, ExperimentalDataSet
 
 
 class Measure():
-    def __init__(self, comps, power = None, PCA=np.nan, position = None): #comps is a dictionary
+    """Measure object, associated with unique timestamp, dataset and dict of components
+    """
+    def __init__(self, comps, PCA=np.nan): #comps is a dictionary
+        """_summary_
+
+        Args:
+            comps (dict): Dictionary of components. If components collect data, dict item names must correspond to a function name below
+            PCA (float, optional): For changing cavity lock. Defaults to np.nan.
+        """
         self.comps = comps
-        self.power =  power
-        self.position = position
-        #self.laser = comps['laser']
         self.timestamp = make_timestamp(precision=0)
         self.dataset = ExperimentalDataSet(self.timestamp)
         self.PCA=PCA #Optional
@@ -31,9 +36,12 @@ class Measure():
 
     def lasermeter(self):
         self.comps['lasermeter'].take_power_reading()
-        #print('lasermeter complete')
 
     def spectrometer(self):
+        """
+        Algorithm to automatically adjust integration time of spectrometer to stop saturation. Works in conjunction with filter wheel.
+        Note initial integration time can be greater than total time!
+        """        
         spec = self.comps['spectrometer']
         integration_time = spec.initial_time
 
@@ -59,11 +67,15 @@ class Measure():
         spec.save_reset(self.dataset, self.timestamp)
 
     def camera(self):
+        """Algorithm to increase ND filter if camera is saturated at minimum exposure time, and save the image with a file name
+        conatining the timestamp, exposure time, power (if avaliable), cavity length (if the spectrometer is avaliable) and the pca value
+        of the cavity lock (if applicable).
+        """        
         cam = self.comps['camera']
         cam.take_pic()
         while cam.cam_saturated and cam.exposure == cam.min_exposure:
             self.comps['wheel'].increase_filter()
-            time.sleep(5)
+            time.sleep(5) #Required, wheel is slow!
             cam.take_pic()
 
         try:
@@ -71,13 +83,26 @@ class Measure():
         except Exception:
             cavity_length = np.nan
             warnings.warn('Spectrometer not avaliable or other error.')
-        image_name = str(self.timestamp) + '_' + str(cam.exposure) + '_' + str(self.power) + '_' + str(
+
+        try:
+            power = self.comps['laser'].power
+        except Exception:
+            warnings.warn('Laser power unavaliable. Laser potentially not working')
+
+        image_name = str(self.timestamp) + '_' + str(cam.exposure) + '_' + str(power) + '_' + str(
             cavity_length) + '_' + str(self.PCA)
         cam.save_pic(self.dataset, image_name)
 
 
 
     def take_measurement(self):
+        """Function to launch all measurement functions. Uses dictionary of components associated with Measurement object. For each item in the dictionary,
+        if self.measure=True, runs a function that is called the same as the name of the dictionary item and is inside measure.py. Then saves the data, and returns 
+        the timestamp.
+
+        Returns:
+            timestamp: int
+        """
         time.sleep(2)
 
         for key, value in self.comps.items(): #Get names and component objects from dictionary
@@ -95,6 +120,18 @@ class Measure():
 
 def threshold_scan(p_list, scale=0.2, new_points=2,
                    resolution=0.001, components=None):
+    """Algorithm to automatically find threshold for stimulated emission and automatically take measurements around it. DOES NOT WORK! Contact Dak. 
+
+    Args:
+        p_list (array like): Initial list of powers
+        scale (float, optional): Maximum allowed output power difference between two adjacent power measurements, in order of magnitude (to power 10). Defaults to 0.2.
+        new_points (int, optional): Number of new points to add between old points each time. Defaults to 2.
+        resolution (float, optional): Laser power resolution. Defaults to 0.001.
+        components (dict, optional): Dictionary of components. Defaults to None.
+
+    Raises:
+        Exception: _description_
+    """
     if components is None:
         raise Exception('Need components')
 
@@ -167,6 +204,16 @@ def threshold_scan(p_list, scale=0.2, new_points=2,
         print('\'', timestamps[0].strip(), '\',\'', timestamps[-1].strip(), '\'')
 
 def power_scan(p_list, components, pca=np.nan):
+    """Take measurements at range of powers
+
+    Args:
+        p_list (array like): List of powers
+        components (dict): List of components
+        pca (float, optional): If cavity lock is being controlled, PCA value. Passed in so camera file can have PCA appended. Defaults to np.nan.
+
+    Returns:
+        float: timestamps
+    """
     time_stamps = []
     components['wheel'].reset()
     for pwr in tqdm(p_list, leave=True):
@@ -174,7 +221,7 @@ def power_scan(p_list, components, pca=np.nan):
         components['laser'].set(pwr)
         logging.info('PCA:', pca)
         # Set up measure class
-        measure = Measure(components, pwr, pca)
+        measure = Measure(components, PCA=pca)
         # Take measurement
         timestamp = measure.take_measurement()
         time_stamps.append(timestamp)
@@ -183,6 +230,11 @@ def power_scan(p_list, components, pca=np.nan):
     return time_stamps
 
 def coherence_scan(position_list, components,pca=np.nan):
+    """Same as power scan, but for TranslationStage
+
+    Returns:
+        _type_: _description_
+    """
     time_stamps = []
     for position in position_list:
         # Reset
