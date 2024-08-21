@@ -36,15 +36,26 @@ def update_dataset(dataset):
 
 def set_lock(PCA):
     logging.info(f'Set to PCA : {PCA}')
-    loging.info(f"Cavity lock Port {pbec_ipc.PORT_NUMBERS['cavity_lock']}")
+    logging.info(f"Cavity lock Port {pbec_ipc.PORT_NUMBERS['cavity_lock']}")
     pbec_ipc.ipc_exec("setSetPoint(" + str(float(PCA)) + ")", port=pbec_ipc.PORT_NUMBERS["cavity_lock"])
 
 class PowerMeter():
-    def __init__(self, num_power_readings=100, bs_factor=1, wavelength=950, measure=True, laser=False):
+    """General class for power meter. Inherit from this class. Must have these functions
+    """    
+    def __init__(self, num_power_readings=100, bs_factor=1, wavelength=950, measure=True, label='power'):
+        """_summary_
+
+        Args:
+            num_power_readings (int, optional): Number of readings to average over. Defaults to 100.
+            bs_factor (float, max = 1, optional): Fraction of output power reading power meter. Defaults to 1.
+            wavelength (int, optional): Affects power reading. Defaults to 950.
+            measure (bool, optional): Whether measurement should be taken. Defaults to True.
+            label (str, optional): label for reading - defaults for power, but change it for multiple power meters. Defaults to False.
+        """        
         self.num_power_readings = num_power_readings
         self.bs_factor = bs_factor
         self.measure = measure
-        self.laser = laser
+        self.label = label
         self.wavelength = wavelength
 
     def take_power_reading(self):
@@ -53,12 +64,22 @@ class PowerMeter():
 
 
 class Thor_PowerMeter(PowerMeter):
+    """
+    Compatible with Thorlabs PM100D power meter. Note if not detected by pylablib, install thorlabs pm100d software and use 
+    the driver switcher to switch drivers. Should be detected in NIMAX software. 
+    """
 
 
     def __init__(self, power_meter_usb_name='USB0::0x1313::0x8078::P0034379::INSTR', num_power_readings=100,
-                 bs_factor=1, wavelength=950, measure=True, laser=False):
+                 bs_factor=1, wavelength=950, measure=True, label='power'):
+        """
+        Args:
+            power_meter_usb_name (str, optional): Visa resource string. Look at NI Max software. Defaults to 'USB0::0x1313::0x8078::P0034379::INSTR'.
+        """        
+        
         from pylablib.devices.Thorlabs.misc import GenericPM
-        super().__init__(num_power_readings, bs_factor, wavelength, measure, laser)
+        super().__init__(num_power_readings, bs_factor, wavelength, measure, label)
+        
         self.power_meter = GenericPM(power_meter_usb_name)
         self.power_meter.set_sensor_mode('power')
         self.power_meter.set_wavelength(wavelength)
@@ -66,10 +87,7 @@ class Thor_PowerMeter(PowerMeter):
 
     def take_power_reading(self):
         '''
-
-        :param num_power_readings:
-        :param bs_factor: Factor light has been decreased by (e.g. due to beamsplitters) between cavity and power meter.
-                            e.g. 2 50:50 beamsplitters means the bs_factor=0.25.
+        Takes average power reading. Set parameters num_power_readings and bs_factor in init. 
         :return: mean power
         '''
         ps = []
@@ -77,19 +95,24 @@ class Thor_PowerMeter(PowerMeter):
             time.sleep(0.01)
             ps.append(self.power_meter.get_power())
         reading = np.mean(ps) / self.bs_factor
-        if self.laser:
-            params.update({'power': reading * 1000})
-            logging.info('Laser power reading:', reading * 1000)
-        else:
-            params.update({'meter_reading': reading})
+        params.update({'{}_meter_reading'.format(self.label): reading})
+        logging.info('{}_meter_reading'.format(self.label)', reading * 1000)
         return reading
 
 
-from single_spec_IPC_module import get_spectrum_measure
 
 class Grandaddy_PowerMeter(PowerMeter):
-    def __init__(self, num_power_readings=100, bs_factor=1, wavelength=950, measure=True, laser=False):
-        super().__init__(num_power_readings, bs_factor, wavelength, measure, laser)
+    def __init__(self, num_power_readings=100, bs_factor=1, wavelength=950, measure=True, label=False):
+        """Newport 1935-C power meter. 
+        This automatically finds the first newport corp device - NOT COMPATIBLE WITH OTHER NEWPORT DEVICES WHICH USE SERIAL!
+        Automatically sets correct wavelength, number of items to average over and measurement frequency.
+        Refer to Newport serial reference for more commands.
+
+        Raises:
+            Exception: _description_
+        """        
+        
+        super().__init__(num_power_readings, bs_factor, wavelength, measure, label)
 
         rm = visa.ResourceManager()
         res_list = rm.list_resources()#
@@ -130,6 +153,7 @@ class Spectrometer():
                  measure=True, min_lamb=910
 
                  ):
+        from single_spec_IPC_module import get_spectrum_measure
         self.spectrometer_server_port = spectrometer_server_port
         self.spectrometer_server_host = spectrometer_server_host
         self.max_count_rate = max_count_rate
