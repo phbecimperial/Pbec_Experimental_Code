@@ -13,7 +13,7 @@ import pickle
 cpath = r'D:/Data'
 ctstamp = [' 20231213_132429 ', ' 20231213_142448 ']
 
-
+# DEPRACATED ------------------------------------------------------------------------------------------------------
 def opensort(path, timestamps):
     path = path + '/' + timestamps[0][1:5] + '/' + timestamps[0][1:7] + '/' + timestamps[0][1:9] + '/'
     print(path)
@@ -81,19 +81,18 @@ def quad_gauss(x, y, amp1, x1, y1, x2, y2, s1, amp2, s2, background):
     return add1 + add2
 
 
-def fit_gaussian2d(data, fit_func, i=0, sf=0.3, plot=False, crop=100):
+def fit_gaussian2d(data, fit_func, i=0, sf=0.3, plot=False, crop=100, return_report = False):
     # data = data[0:900, 500:900]
+
+
 
     data[data == 255.0] = 0
 
     data = data / np.max(data)
     data_spline = data
     data_spline = scipy.ndimage.gaussian_filter(data_spline, 3)
-    plt.imshow(data_spline)
-    plt.show()
+
     data_spline = scipy.ndimage.zoom(data_spline, sf)
-    plt.imshow(data_spline)
-    plt.show()
 
     # max_args = np.unravel_index(data_spline.argmax(), data_spline.shape)
     # data_spline = data_spline[(max_args[0]-crop):(max_args[0]+crop), (max_args[1]-crop):(max_args[1]+crop)]
@@ -120,7 +119,7 @@ def fit_gaussian2d(data, fit_func, i=0, sf=0.3, plot=False, crop=100):
         params = params.valuesdict()
 
         maxarg = np.argmax(z_f)
-        print(z_f[maxarg])
+        # print(z_f[maxarg])
 
         nparams = {'amp1': dict(value=np.max(data_spline) / 2),  # , max=1.3),
                    'y1': dict(value=x_f[maxarg], min=x_f[maxarg] - 5, max=x_f[maxarg] + 5),
@@ -157,7 +156,7 @@ def fit_gaussian2d(data, fit_func, i=0, sf=0.3, plot=False, crop=100):
         #            'background': dict(value=0.2, min=0, max=0.5),
         #            'Integral': dict(value=np.sum(data_spline), vary=False)
         #            }
-        print(nparams)
+        # print(nparams)
 
         nparams = lf.create_params(**nparams)
 
@@ -190,26 +189,37 @@ def fit_gaussian2d(data, fit_func, i=0, sf=0.3, plot=False, crop=100):
             # plt.show()
             plt.close()
 
+
         return result.params
 
+#-------------------------------------------------------------------------------------------------------
 
-def fit_single(data, i=0, sf=0.3, plot=False, crop_point=[], crop_size=100):
-    # data = data[0:900, 500:900]
+def fit_single(data, sf=0.3, plot=False, crop_point=[100, 100], crop_size=100, return_report=False):
+    """
+    Fits 2D gaussian to image, calculates displacement from given position and the beam radius in um
 
+    :param data: image to fit
+    :param sf: scale factor to apply to image, may be broken keep to 1 if unsure
+    :param plot: if true plots fit
+    :param crop_point: point about which to crop
+    :param crop_size: size to crop image around, dont make too large, will break
+    :return:
+    """
+
+    # removes dead pixels
     data[data == 255.0] = 0
 
+    #normalises and slightly smooths image
     data = data / np.max(data)
     data_spline = data
     data_spline = scipy.ndimage.gaussian_filter(data_spline, 3)
 
+    # crops
     data_spline = data_spline[(crop_point[0] - crop_size):(crop_point[0] + crop_size),
                   (crop_point[1] - crop_size):(crop_point[1] + crop_size)]
 
-    plt.imshow(data_spline)
-    plt.show()
+    # scales image to lower resolution
     data_spline = scipy.ndimage.zoom(data_spline, sf)
-    plt.imshow(data_spline)
-    plt.show()
 
     # max_args = np.unravel_index(data_spline.argmax(), data_spline.shape)
 
@@ -222,70 +232,23 @@ def fit_single(data, i=0, sf=0.3, plot=False, crop_point=[], crop_size=100):
     if np.max(data_spline) < 1e-5:
         return None
     else:
-
+        # flattens image to fit
         y = np.linspace(0, data_spline.shape[1], data_spline.shape[1])
         x = np.linspace(0, data_spline.shape[0], data_spline.shape[0])
-
         X, Y = np.meshgrid(y, x)
-
         x_f, y_f, z_f = (X.flatten(), Y.flatten(), data_spline.flatten())
 
-        # model1 = lf.Model(fit_func, independent_vars=['x', 'y'])
+        # instantiates model
         model2 = lf.models.Gaussian2dModel()
         params = model2.guess(z_f, y_f, x_f)
+
+        # Adds custom fitting parameters
         params.add('scale', value = sf, vary = False)
         params.add('center', value = crop_size, vary = False)
         params.add('scaled_disp', expr = 'sqrt((centerx - center)**2 + (centery-center)**2) *3.45/5 /scale')
         params.add('Scaled_beam_radius', expr = '(sigmax + sigmay) * 3.45/5 / scale')
         result = model2.fit(z_f, x=y_f, y=x_f, params=params)
 
-        # params = params.valuesdict()
-        #
-        # maxarg = np.argmax(z_f)
-        # print(z_f[maxarg])
-        #
-        # nparams = {'amp1': dict(value=np.max(data_spline) / 2),#, max=1.3),
-        #            'y1': dict(value=x_f[maxarg], min=x_f[maxarg] - 5, max=x_f[maxarg] + 5),
-        #            'x1': dict(value=y_f[maxarg], min=y_f[maxarg] - 5, max=y_f[maxarg] + 5),
-        #            'y2': dict(value=x_f[maxarg], min=x_f[maxarg] - 5, max=x_f[maxarg] + 5),
-        #            'x2': dict(value=y_f[maxarg], min=y_f[maxarg] - 5, max=y_f[maxarg] + 5),
-        #            's1': dict(value=5 * sf), #, min=54 * sf - 1 * sf, max=70 * sf),
-        #            'amp2': dict(value=np.max(data_spline), vary=False),
-        #            's2': dict(value=params['sigmax'], min=10 * sf, max= 50 * sf),
-        #            'background': dict(value=0.0, min=0),
-        #            'Integral': dict(value=np.sum(data_spline), vary=False)
-        #            }
-
-        # nparams = {'amp1': dict(value=np.max(data_spline) / 2),#, max=1.3),
-        #            'y1': dict(value=x_f[maxarg], min=x_f[maxarg] - 5, max=x_f[maxarg] + 5),
-        #            'x1': dict(value=y_f[maxarg], min=y_f[maxarg] - 5, max=y_f[maxarg] + 5),
-        #            'y2': dict(value=x_f[maxarg], min=x_f[maxarg] - 5, max=x_f[maxarg] + 5),
-        #            'x2': dict(value=y_f[maxarg], min=y_f[maxarg] - 5, max=y_f[maxarg] + 5),
-        #            's1': dict(value=5 * sf), #, min=54 * sf - 1 * sf, max=70 * sf),
-        #            'amp2': dict(value=0.0, vary=False),
-        #            's2': dict(value=params['sigmax'], min=50 * sf, max=800 * sf),
-        #            'background': dict(value=0.0, min=0),
-        #            'Integral': dict(value=np.sum(data_spline), vary=False)
-        #            }
-
-        # nparams = {'amp1': dict(value=np.max(data_spline) / 2, min=0),
-        #            'y1': dict(value=x_f[maxarg], min=x_f[maxarg] - 5, max=x_f[maxarg] + 5),
-        #            'x1': dict(value=y_f[maxarg], min=y_f[maxarg] - 5, max=y_f[maxarg] + 5),
-        #            'y2': dict(value=x_f[maxarg], min=x_f[maxarg] - 5, max=x_f[maxarg] + 5),
-        #            'x2': dict(value=y_f[maxarg], min=y_f[maxarg] - 5, max=y_f[maxarg] + 5),
-        #            's1': dict(value=54*sf/2.355, min=(54 * sf - 10 * sf)/2.355, max=(54 * sf + 10 * sf)/2.355),
-        #            'amp2': dict(value=np.max(data_spline) / 2, min=0, max=1.3),
-        #            's2': dict(value=params['sigmax'], min=100 * sf, max=800 * sf),
-        #            'background': dict(value=0.2, min=0, max=0.5),
-        #            'Integral': dict(value=np.sum(data_spline), vary=False)
-        #            }
-        # print(nparams)
-        #
-        # nparams = lf.create_params(**nparams)
-
-        # result = model1.fit(z_f, x=y_f, y=x_f, params=nparams)
-
-        print(lf.report_fit(result))
         data_peak = np.unravel_index(np.argmax(data_spline), data_spline.shape)
 
         if plot:
@@ -302,15 +265,8 @@ def fit_single(data, i=0, sf=0.3, plot=False, crop_point=[], crop_size=100):
             plt.show()
             plt.close()
 
-        else:
-            plt.plot(model2.func(Y, X, **result.best_values)[int(data_peak[0])], label='fit')
-            # plt.plot(single_gauss(Y, X, **result.best_values)[int(data_peak[0])], label='thermal cloud')
-            plt.plot(data_spline[int(data_peak[0])], label='data')
-            plt.legend()
-            plt.title(result.values, fontsize=6)
-            # plt.savefig("Thermal_fits/img{}".format(1000))
-            # plt.show()
-            plt.close()
+        if return_report:
+            return result.params, lf.report_fit(result)
 
         return result.params
 
@@ -319,28 +275,35 @@ def fit_single(data, i=0, sf=0.3, plot=False, crop_point=[], crop_size=100):
 # ldpickle = False
 
 # No convolution!
+if __name__ == '__main__':
+    a = 0
+    outputs = []
+    # if not ldpickle:
+    # mps, sps, pic = opensort(cpath, ctstamp)
+    # pic = pic[6]
 
-a = 0
-outputs = []
-# if not ldpickle:
-# mps, sps, pic = opensort(cpath, ctstamp)
-# pic = pic[6]
+    # pic = np.array(Image.open(r'D:\Data\2024\202402\Pump_spot_displaced_20240222.bmp'), dtype=float)
 
-# pic = np.array(Image.open(r'D:\Data\2024\202402\Pump_spot_displaced_20240222.bmp'), dtype=float)
+    crop_size = 200
 
-aligned_pic = np.array(Image.open(r'C:\Data\2024\PumpSpotLocation\19_08_aligned.bmp'), dtype=float)
+    aligned_pic = np.array(Image.open(r'C:\Data\2024\PumpSpotLocation\21_08_aligned.bmp'), dtype=float)
+    crop_point = np.array(np.unravel_index(aligned_pic.argmax(), aligned_pic.shape))
 
-pic = np.array(Image.open(r'C:\Data\2024\PumpSpotLocation\19_08_aligned.bmp'), dtype=float)
+    aligned_fit = fit_single(aligned_pic, plot = False, crop_point=crop_point, crop_size=crop_size)
+    crop_point[0] += int(round(['centerx'] - crop_size)) #Fix displacement
+    crop_point[1] += int(round(aligned_fit['centery'] - crop_size))
 
-plt.imshow(pic)
-plt.title('Data')
-plt.show()
+    pic = np.array(Image.open(r'C:\Data\2024\PumpSpotLocation\21_08_aligned.bmp'), dtype=float)
 
-crop_point = np.array(np.unravel_index(aligned_pic.argmax(), aligned_pic.shape))
-crop_point[0] -= 0 #Fix displacement
-crop_point[1] -= 1
-print(crop_point)
+    plt.imshow(pic)
+    plt.title('Data')
+    plt.show()
 
-result = fit_single(pic, i=0, sf=1, plot=True, crop_point=crop_point, crop_size=200)  # What you change
 
-print('result')
+
+    print(crop_point)
+
+    result, report = fit_single(pic, sf=1, plot=True, crop_point=crop_point, crop_size=crop_size, return_report=True)  # What you change
+    print(report)
+
+    print('result')

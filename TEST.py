@@ -1,82 +1,118 @@
-import os
-import matplotlib.pyplot as plt
+
+
+import Components as comp
+import socket
+import sys
+
+if socket.gethostname() == "ph-photonbec5":
+    sys.path.append(r"D:/Control/PythonPackages/")
+
+components = dict()
+
+
+filter_wheel = comp.FilterWheel(allowed_filter_positions=[0,1,2,3,4,5])
+
+
 import numpy as np
-try:
-    # if on Windows, use the provided setup script to add the DLLs folder to the PATH
-    from windows_setup import configure_path
-
-    configure_path()
-except ImportError:
-    configure_path = None
-
-import numpy as np
-
-os.add_dll_directory(
-    r'C:\Program Files\Thorlabs\Scientific Imaging\Scientific Camera Support\Scientific Camera Interfaces\SDK\Native Toolkit\dlls\Native_32_lib')
-from PIL import Image
+import Components as comp
 import time
-import datetime
-from thorlabs_tsi_sdk.tl_camera import TLCameraSDK
+import socket
+import sys
+
+if socket.gethostname() == "ph-photonbec5":
+    sys.path.append("D:/Control/PythonPackages/")
+    sys.path.append("D:/Control/PiezoController/")
+
+from pbec_analysis import make_timestamp, ExperimentalDataSet, CameraData
 
 
-def get_timestamp(accuracy):
-    ts = time.time()
-    if accuracy == 'seconds':
-        st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H-%M-%S')
-    elif accuracy == 'milliseconds':
-        st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S-%f')
-    return st
+def save_image(image, stage_position, exposure_time):
+    timestamp = make_timestamp(precision=0)
+    dataset = ExperimentalDataSet(timestamp)
+    camera_data = CameraData(timestamp,
+                             extension='_' + str(round(stage_position)) + '_' + str(int(exposure_time)) + '_' + str(
+                                 np.amax(image)) + '_single' + '.png')
+    camera_data.data = image
+    dataset.dataset[
+        "CavityCamera" + str(stage_position) + str(exposure_time) + str(np.amax(image)) + 'single'] = camera_data
+    dataset.saveAllData()
+    time.sleep(0.2)
 
 
-folder = r'D:\Data\2024\202408'
+def exposition_check(image_list):  # FOR BOOLEEAN
+    overexposed = 0
+    good_pics = 0
+    underexposed = 0
+    bad_pics = 0
+    exposition_change = 0
+    for k in range(len(image_list)):
+        if np.amax(image_list[k]) == 250.0:
+            overexposed += 1
+            bad_pics += 1
+        if np.amax(image_list[k]) < 250.0 and np.amax(image_list[k]) > 120.0:
+            good_pics += 1
+        if np.amax(image_list[k]) <= 120.0:
+            underexposed += 1
+            bad_pics += 1
+    if overexposed >= round(bad_pics / 2):
+        exposition_change = 1  # DECREASE EXPOSURE
+    if underexposed >= round(bad_pics / 2):
+        exposition_change = 2  # INCREASE EXPOSURE
+    result_list = [exposition_change, good_pics, bad_pics, overexposed, underexposed]
+    return result_list
 
-with TLCameraSDK() as sdk:
-    available_cameras = sdk.discover_available_cameras()
-    if len(available_cameras) < 1:
-        print("no cameras detected")
 
-    with sdk.open_camera(available_cameras[0]) as camera:
-        # with sdk.open_camera('17440') as camera:
-        camera.exposure_time_us = 100000  # exposure time is in microseconds
-        camera.frames_per_trigger_zero_for_unlimited = 0  # start camera in continuous mode
-        camera.image_poll_timeout_ms = 4000  # polling timeout # I don't know what this means??
-        # old_roi = camera.roi  # store the current roi
-        # print(camera.roi)
-        print(camera.exposure_time_us)
-        """
-        uncomment the line below to set a region of interest (ROI) on the camera
-        """
-        # camera.roi = (324, 324, 454, 454)  # set roi to be at origin point (100, 100) with a width & height of 500
+position_list = np.arange(221, 90, -1)
+number_of_pics = 10
+min_exp = 100
+max_exp = 1999994
+standard_exp = 50000
 
-        # if camera.gain_range.max > 0:
-        #     db_gain = 0
-        #     gain_index = camera.convert_decibels_to_gain(db_gain)
-        #     camera.gain = gain_index
-        #
-        #     #print(f"Set camera gain to {camera.convert_gain_to_decibels(camera.gain)}")
-        #
-        # camera.arm(2)
-        #
-        # camera.issue_software_trigger()
-        # frames_counted = 0
-        camera.arm(2)
-        camera.issue_software_trigger()
-        frame = camera.get_pending_frame_or_null()
-        image_data = frame.image_buffer
-        img = Image.fromarray(image_data)
-        plt.imshow(img)
+with comp.Thor_Camera(min_exp, max_exp, measure=True, max_frames=1) as camera:
+    with comp.Translation_Stage() as stage:
 
-        # img.save(folder + "\\"+ 'TEST' + "_" + str(int(round(camera.exposure_time_us/1000,0))) + "ms.png")
-        # Put loop to do things here...
-        # frame = camera.get_pending_frame_or_null()
-        # if frame is None:
-        # 	raise TimeoutError("Timeout was reached while polling for a frame, program will now exit")
-        # frames_counted += 1
-        # image_data = frame.image_buffer
-        # img = Image.fromarray(image_data)
-        # st = get_timestamp('seconds')
-        # img.save(folder + "\\"+ st + "_" + str(int(round(camera.exposure_time_us/1000,0))) + "ms.png")
-        # print('Image saved')
+        for k in range(len(position_list)):
+            filter_wheel.reset()
+            stage.set(position_list[k])
+            camera.change_exposure(min_exp)
+            position = stage.get_position()
+            exposure = camera.get_exposure()
+            iteration = 0
+            print('Now at Position : ', position)
 
-        time.sleep(0.1)
-        camera.disarm()
+            print('Starting verification')
+            verification_img_list = camera.get_multiple_images(number_of_pics)
+
+            while exposition_check(verification_img_list)[0] != 0:
+                print('Need to readjust parameters, iteration :', iteration)
+                verification_img_list = camera.get_multiple_images(number_of_pics)
+                verification = exposition_check(verification_img_list)[0]
+                if verification == 1:
+                    print('need to decrease exposure')
+                    camera.change_exposure(exposure * 0.9)
+                    exposure = camera.get_exposure()
+
+                    if exposure <= min_exp:
+                        print('Minimum exposure reached, increasing filter')
+                        filter_wheel.increase_filter()
+                        camera.change_exposure(min_exp)
+
+                if verification == 2:
+                    print('need to increase exposure')
+                    camera.change_exposure(exposure * 1.1)
+                    exposure = camera.get_exposure()
+                    if exposure >= max_exp:
+                        print('Maximum exposure reached, decreasing filter')
+                        filter_wheel.decrease_filter()
+                        camera.change_exposure(standard_exp)
+
+                iteration += 1
+
+            print('exposition checked for position :', position)
+
+            for k in range(number_of_pics):
+                img = camera.get_image()
+                save_image(img, position, exposure)
+                time.sleep(0.1)
+                print('pic num. : ', k, 'for position :', position)
+

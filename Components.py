@@ -45,7 +45,7 @@ def set_lock(PCA):
         PCA (float)
     """
     logging.info(f'Set to PCA : {PCA}')
-    loging.info(f"Cavity lock Port {pbec_ipc.PORT_NUMBERS['cavity_lock']}")
+    logging.info(f"Cavity lock Port {pbec_ipc.PORT_NUMBERS['cavity_lock']}")
     pbec_ipc.ipc_exec("setSetPoint(" + str(float(PCA)) + ")", port=pbec_ipc.PORT_NUMBERS["cavity_lock"])
 
 class PowerMeter():
@@ -326,6 +326,17 @@ class FilterWheel():
             time.sleep(5)
             params.update({'nd_filter': self.allowed_filter_positions[self.current_pos_index]})
 
+    def decrease_filter(self):
+        filter_pos = self.filter_wheel.get_position()
+        if filter_pos == min(self.allowed_filter_positions):
+            raise Exception('Min ND filter reached')
+            winsound.Beep(1000, 1000)
+        else:
+            self.filter_wheel.set_position(self.allowed_filter_positions[self.current_pos_index - 1])
+            self.current_pos_index = self.current_pos_index - 1
+            time.sleep(5)
+            params.update({'nd_filter': self.allowed_filter_positions[self.current_pos_index]})
+
     def reset(self):
         self.filter_wheel.set_position(0)
         self.current_pos_index = 0
@@ -563,6 +574,7 @@ class Thor_Camera(Camera):
         self.camera.issue_software_trigger()
         frame = self.tlc.get_pending_frame_or_null(self.camera)
         image_data = frame.image_buffer
+
         return image_data*(255/1023)
 
     def get_multiple_images(self, num=10):
@@ -624,6 +636,11 @@ class Translation_Stage():
         self.stage.wait_move()
         time.sleep(timeout)
         params.update({'position': self.stage.get_position()})
+
+    def set_home(self):
+        self.stage.home()
+        self.stage.wait_for_home()
+        logging.info("Stage is homed")
 
     def get_position(self):
         """Often more trustworthy to ask the stage on current position instead of remembering most recent position
